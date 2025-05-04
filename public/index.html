@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Builder Blinds Interface</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="dashboard.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <!-- Mobile Menu Button -->
+    <button class="menu-button" onclick="toggleNav()">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <div class="page-layout">
+        <!-- Side Navigation -->
+        <nav class="side-nav">
+            <button class="nav-button active" data-tab="home">Dashboard</button>
+            <button class="nav-button" data-tab="workOrders">Work Orders</button>
+            <button class="nav-button" data-tab="invoices">Invoices</button>
+            <button class="nav-button" data-tab="pickSheet">Pick Sheet</button>
+            <button class="nav-button" data-tab="cutting">Cut Blinds</button>
+            <button class="nav-button" data-tab="inventory">Inventory</button>
+            <button class="nav-button" data-tab="clientPortal">Client Portal</button>
+            <button class="nav-button" data-tab="willCall">Will Call</button>
+            <button class="nav-button" data-tab="installDelivery">Install/Delivery</button>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Home Tab -->
+            <div id="home" class="tab-content premium-tab">
+                <h2 class="premium-header">Dashboard</h2>
+                <div class="business-section premium-metrics">
+                    <h3 class="premium-subheader">Revenue Overview</h3>
+                    <div class="premium-metrics-grid">
+                        <div class="premium-metric-card">
+                            <h4 class="premium-metric-title">Total Revenue</h4>
+                            <div id="totalRevenue" class="premium-metric-value">$0.00</div>
+                        </div>
+                        <div class="premium-metric-card">
+                            <h4 class="premium-metric-title">Orders This Month</h4>
+                            <div id="monthlyOrders" class="premium-metric-value">0</div>
+                        </div>
+                        <div class="premium-metric-card">
+                            <h4 class="premium-metric-title">Average Order Value</h4>
+                            <div id="avgOrderValue" class="premium-metric-value">$0.00</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Add this button in your Client Portal tab -->
+                <div class="business-section">
+                    <h3>Measurement Tools</h3>
+                    <p>Need help with accurate measurements? Use our measurement worksheet to ensure the perfect fit.</p>
+                    <button type="button" onclick="openMeasurementModal()" class="premium-button">
+                        <span>📏</span> Open Measurement Worksheet
+                    </button>
+                </div>
+            
+                <div class="business-section premium-analytics">
+                    <h3 class="premium-subheader">Order Analytics</h3>
+                    <div class="premium-table-responsive">
+                        <table id="orderAnalyticsTable" class="premium-table">
+                            <thead>
+                                <tr>
+                                    <th class="premium-th">Date</th>
+                                    <th class="premium-th">Orders</th>
+                                    <th class="premium-th">Revenue</th>
+                                    <th class="premium-th">Average Value</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="business-section premium-inventory">
+                    <h3 class="premium-subheader">Inventory Status</h3>
+                    <div id="lowStockAlert" class="premium-alert"></div>
+                    <div class="premium-table-responsive">
+                        <table id="inventoryStatusTable" class="premium-table">
+                            <thead>
+                                <tr>
+                                    <th class="premium-th">Item</th>
+                                    <th class="premium-th">Current Stock</th>
+                                    <th class="premium-th">Reorder Level</th>
+                                    <th class="premium-th">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Add this modal HTML near the end of your body tag, next to your existing modals -->
+            <div id="measurementModal" class="premium-modal">
+                <div class="premium-modal-content measurement-modal-content">
+                    <span class="premium-close-modal" onclick="closeMeasurementModal()">×</span>
+                    <h2 class="premium-subheader">Measurement Worksheet</h2>
+                    <div class="premium-details-container" id="measurementContainer">
+                        <!-- Measurement form will be loaded here dynamically -->
+                    </div>
+                    <div class="premium-button-group">
+                        <button type="button" onclick="printMeasurementForm()" class="premium-button premium-secondary">Print</button>
+                        <button type="button" onclick="saveMeasurementForm()" class="premium-button premium-primary">Save Measurements</button>
+                        <button type="button" onclick="closeMeasurementModal()" class="premium-button">Close</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Work Orders Tab -->
+<div id="workOrders" class="tab-content premium-tab">
+    <h2 class="premium-header">Create Work Order</h2>
+    <div class="premium-controls">
+        <select id="loadQuote" class="premium-select">
+            <option value="">Load Saved Quote...</option>
+        </select>
+        <button onclick="saveQuote()" class="premium-button">Save Quote</button>
+        <button onclick="deleteQuote()" class="premium-button">Delete Quote</button>
+    </div>
+    <form id="workOrderForm">
+        <div class="premium-form-grid">
+            <div class="premium-input-group">
+                <label>Client Name:</label>
+                <input type="text" id="clientName" required class="premium-input">
+            </div>
+            <div class="premium-input-group">
+                <label>Client Type:</label>
+                <select id="clientType" required class="premium-input">
+                    <option value="residential">Residential</option>
+                    <option value="commercial">Commercial</option>
+                </select>
+            </div>
+            <div class="premium-input-group">
+                <label>Service Type:</label>
+                <select id="serviceType" required class="premium-input">
+                    <option value="install">Installation</option>
+                    <option value="delivery">Delivery Only</option>
+                </select>
+            </div>
+            <div class="premium-input-group">
+                <label>Property Name:</label>
+                <input type="text" id="propertyName" required class="premium-input">
+            </div>
+            <div class="premium-input-group">
+                <label>Phone Number:</label>
+                <input type="tel" id="clientPhone" placeholder="123-456-7890" class="premium-input">
+            </div>
+            <div class="premium-input-group">
+                <label>Email Address:</label>
+                <input type="email" id="clientEmail" placeholder="example@example.com" required class="premium-input">
+            </div>
+            <div class="premium-input-group">
+                <label>Measurement Type:</label>
+                <select id="measurementType" class="premium-select">
+                    <option value="window">Window</option>
+                    <option value="blind">Blind</option>
+                </select>
+            </div>
+        </div>
+        <div class="premium-table-responsive">
+            <table id="workOrderTable" class="premium-table">
+                <thead>
+                    <tr>
+                        <th class="premium-th">Blind Type</th>
+                        <th class="premium-th">Width</th>
+                        <th class="premium-th">Length</th>
+                        <th class="premium-th">Quantity</th>
+                        <th class="premium-th">Stock Status</th>
+                        <th class="premium-th">Recommended Size / Notes</th>
+                        <th class="premium-th">Unit Price</th>
+                        <th class="premium-th">Total</th>
+                        <th class="premium-th">Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+                <!-- This is the updated tfoot section for your work order table -->
+<tfoot>
+    <tr>
+        <td colspan="7" align="right"><strong>Subtotal:</strong></td>
+        <td id="subtotal" class="premium-td">$0.00</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td colspan="7" align="right">
+            <strong>Discount:</strong>
+            <input type="number" id="discountPercent" min="0" max="100" step="1" class="premium-input" style="width: 60px"> %
+        </td>
+        <td id="discountAmount" class="premium-td">$0.00</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td colspan="7" align="right"><strong>Tax (8.25%):</strong></td>
+        <td id="taxAmount" class="premium-td">$0.00</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td colspan="7" align="right"><strong>Grand Total:</strong></td>
+        <td id="grandTotal" class="premium-td">$0.00</td>
+        <td></td>
+    </tr>
+</tfoot>
+            </table>
+        </div>
+        <div class="premium-button-group">
+            <button type="button" onclick="addLineItem()" class="premium-button">Add Item</button>
+            <button type="button" onclick="checkStockAndCutting()" class="premium-button">Check Stock</button>
+            <button type="button" onclick="createEstimate()" class="premium-button">Create Estimate</button>
+            <button type="button" onclick="acceptQuote()" class="premium-button">Accept & Send to Warehouse</button>
+        </div>
+    </form>
+</div>
+<!-- Invoices Tab -->
+<div id="invoices" class="tab-content premium-tab">
+    <h2 class="premium-header">Invoice Management</h2>
+    
+    <!-- Invoice Form Section -->
+    <div class="premium-form-section">
+        <form id="invoiceForm">
+            <div class="premium-form-grid">
+                <div class="premium-input-group">
+                    <label>Invoice Number:</label>
+                    <input type="text" id="invoiceNumber" readonly class="premium-input">
+                </div>
+                <div class="premium-input-group">
+                    <label>Invoice Date:</label>
+                    <input type="date" id="invoiceDate" required class="premium-input">
+                </div>
+                <div class="premium-input-group">
+                    <label>Due Date:</label>
+                    <input type="date" id="invoiceDueDate" required class="premium-input">
+                </div>
+                <div class="premium-input-group">
+                    <label>Client Name:</label>
+                    <input type="text" id="invoiceClientName" required class="premium-input">
+                </div>
+                <div class="premium-input-group">
+                    <label>Address/Property:</label>
+                    <input type="text" id="invoiceClientAddress" class="premium-input">
+                </div>
+                <div class="premium-input-group">
+                    <label>Phone Number:</label>
+                    <input type="tel" id="invoiceClientPhone" placeholder="123-456-7890" class="premium-input">
+                </div>
+                <div class="premium-input-group">
+                    <label>Email Address:</label>
+                    <input type="email" id="invoiceClientEmail" placeholder="example@example.com" class="premium-input">
+                </div>
+            </div>
+            
+            <div class="premium-table-responsive">
+                <table id="invoiceTable" class="premium-table">
+                    <thead>
+                        <tr>
+                            <th class="premium-th">Item Type</th>
+                            <th class="premium-th">Description</th>
+                            <th class="premium-th">Quantity</th>
+                            <th class="premium-th">Unit Price</th>
+                            <th class="premium-th">Total</th>
+                            <th class="premium-th">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="4" align="right"><strong>Subtotal:</strong></td>
+                            <td id="invoiceSubtotal" class="premium-td">$0.00</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" align="right">
+                                <strong>Discount:</strong>
+                                <input type="number" id="invoiceDiscountPercent" min="0" max="100" step="1" class="premium-input" style="width: 60px"> %
+                            </td>
+                            <td id="invoiceDiscountAmount" class="premium-td">$0.00</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" align="right"><strong>Tax (8.25%):</strong></td>
+                            <td id="invoiceTaxAmount" class="premium-td">$0.00</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" align="right"><strong>Grand Total:</strong></td>
+                            <td id="invoiceGrandTotal" class="premium-td">$0.00</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            
+            <div class="premium-button-group">
+                <button type="button" id="newInvoiceButton" class="premium-button">New Invoice</button>
+                <button type="button" onclick="addInvoiceLineItem()" class="premium-button">Add Item</button>
+                <button type="button" id="saveInvoiceButton" class="premium-button">Save Invoice</button>
+                <button type="button" onclick="printInvoice(document.getElementById('invoiceNumber').value)" class="premium-button">Generate PDF</button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Invoice List Section -->
+    <div class="premium-section">
+        <h3 class="premium-subheader">Saved Invoices</h3>
+        <div id="invoiceList" class="premium-card-grid">
+            <!-- Invoice cards will be inserted here dynamically -->
+        </div>
+    </div>
+</div>
+
+            <!-- Pick Sheet Tab -->
+<div id="pickSheet" class="tab-content premium-tab">
+    <h2 class="premium-header">Warehouse Pick Sheet</h2>
+    <div class="premium-controls">
+        <select id="pickSheetFilter" class="premium-select">
+            <option value="all">All Orders</option>
+            <option value="pending">Pending Pick</option>
+            <option value="in-progress">In Progress</option>
+            <option value="picked">Picked</option>
+            <option value="staged">Staged for Delivery</option>
+        </select>
+        <input type="text" id="orderSearch" placeholder="Search orders..." class="premium-input">
+    </div>
+    <div class="premium-table-responsive">
+        <table id="pickSheetTable" class="premium-table">
+            <thead>
+                <tr>
+                    <th class="premium-th">Order #</th>
+                    <th class="premium-th">Customer</th>
+                    <th class="premium-th">Items</th>
+                    <th class="premium-th">Location</th>
+                    <th class="premium-th">Status</th>
+                    <th class="premium-th">Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+
+            <!-- Cut Blinds Tab -->
+<div id="cutting" class="tab-content premium-tab">
+    <h2 class="premium-header">Cutting Interface</h2>
+    <div class="premium-form-grid">
+        <div class="premium-input-group">
+            <label>Desired Width:</label>
+            <input type="number" id="desiredWidth" step="0.125" class="premium-input">
+        </div>
+        <div class="premium-input-group">
+            <label>Stock Width:</label>
+            <input type="number" id="stockWidth" step="0.125" class="premium-input">
+        </div>
+    </div>
+    <div class="premium-button-group">
+        <button onclick="calculateCuts()" class="premium-button">Calculate Cuts</button>
+        <button onclick="refreshPickSheetOrders()" class="premium-button">Refresh Pick Sheet Orders</button>
+    </div>
+    <div id="cutResults" class="premium-results"></div>
+    <div class="business-section premium-cutting-orders">
+        <h3>Pending Cutting Orders</h3>
+        <div class="premium-table-responsive">
+            <table id="cuttingOrdersTable" class="premium-table">
+                <thead>
+                    <tr>
+                        <th class="premium-th">Order #</th>
+                        <th class="premium-th">Blind Type</th>
+                        <th class="premium-th">Dimensions</th>
+                        <th class="premium-th">Quantity</th>
+                        <th class="premium-th">Status</th>
+                        <th class="premium-th">Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+            <!-- Inventory Tab -->
+<div id="inventory" class="tab-content premium-tab">
+    <h2 class="premium-header">Inventory Management</h2>
+    <div class="premium-button-group">
+        <input type="file" id="inventoryUpload" accept=".xlsx,.xls,.csv" class="premium-input-file">
+        <button onclick="uploadInventory()" class="premium-button">Upload</button>
+        <button onclick="saveInventory()" class="premium-button">Save Quantities</button>
+        <button onclick="exportInventoryToFile()" class="premium-button">Export Backup</button>
+        <button onclick="importInventoryFromBackup()" class="premium-button">Import Backup</button>
+    </div>
+    <div class="premium-table-responsive">
+        <table id="inventoryTable" class="premium-table">
+            <thead>
+                <tr>
+                    <th class="premium-th">Item Number</th>
+                    <th class="premium-th">Size (inches)</th>
+                    <th class="premium-th">Sq/Ft</th>
+                    <th class="premium-th">Price/SqFt</th>
+                    <th class="premium-th">Price</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+            <!-- Client Portal Tab -->
+<div id="clientPortal" class="tab-content premium-tab">
+    <h2 class="premium-header">Client Portal</h2>
+    <div class="client-account-section">
+      <h3 class="premium-subheader">Client Accounts</h3>
+      <form id="clientAccountForm">
+        <div class="premium-form-grid">
+          <div class="premium-input-group">
+            <label>Client Name:</label>
+            <input type="text" id="clientAccountName" required class="premium-input">
+          </div>
+          <div class="premium-input-group">
+            <label>Email:</label>
+            <input type="email" id="clientAccountEmail" required class="premium-input">
+          </div>
+          <div class="premium-input-group">
+            <label>Phone:</label>
+            <input type="tel" id="clientAccountPhone" required class="premium-input">
+          </div>
+        </div>
+        <button type="button" onclick="createClientAccount()" class="premium-button">Create Account</button>
+      </form>
+      <div id="clientAccountList"></div>
+    </div>
+    <div class="business-section">
+      <h3 class="premium-subheader">Delivery Receipts</h3>
+      <button onclick="generateDeliveryReceipt()" class="premium-button">Generate Delivery Receipt</button>
+      <div id="deliveryReceipt"></div>
+    </div>
+    <div class="business-section">
+      <h3 class="premium-subheader">Order Blinds</h3>
+      <form id="clientOrderForm">
+        <div class="premium-form-grid">
+          <div class="premium-input-group">
+            <label>Measurement Type:</label>
+            <select id="measurementTypeClient" class="premium-select">
+              <option value="window">Window Measurement</option>
+              <option value="blind">Blind Measurement</option>
+            </select>
+          </div>
+          <div class="premium-input-group">
+            <label>Width (inches):</label>
+            <input type="number" id="clientWidth" step="0.125" class="premium-input">
+          </div>
+          <div class="premium-input-group">
+            <label>Length (inches):</label>
+            <input type="number" id="clientLength" step="0.125" class="premium-input">
+          </div>
+          <div class="premium-input-group">
+            <label>Blind Type:</label>
+            <select id="clientBlindType" class="premium-select">
+              <option value="Faux Wood">Faux Wood</option>
+              <option value="Vertical">Vertical</option>
+            </select>
+          </div>
+          <div class="premium-input-group">
+            <label>Quantity:</label>
+            <input type="number" id="clientQuantity" min="1" class="premium-input">
+          </div>
+        </div>
+        <button type="button" onclick="checkAvailability()" class="premium-button">Check Availability</button>
+      </form>
+      <div id="availabilityResult"></div>
+    </div>
+  </div>
+
+            <!-- Will Call Tab -->
+<div id="willCall" class="tab-content premium-tab">
+    <h2 class="premium-header">Will Call Orders</h2>
+    <div class="premium-controls">
+        <select id="willCallFilter" class="premium-select">
+            <option value="all">All Orders</option>
+            <option value="pending">Pending</option>
+            <option value="completed">Completed</option>
+        </select>
+        <input type="text" id="willCallSearch" placeholder="Search orders..." class="premium-input">
+        <button onclick="addWillCallOrder()" class="premium-button">Add Order</button>
+    </div>
+    <div class="premium-table-responsive">
+        <table id="willCallTable" class="premium-table">
+            <thead>
+                <tr>
+                    <th class="premium-th">Order #</th>
+                    <th class="premium-th">Client</th>
+                    <th class="premium-th">Items</th>
+                    <th class="premium-th">Status</th>
+                    <th class="premium-th">Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    <div class="premium-button-group">
+        <button onclick="downloadWillCallList()" class="premium-button premium-secondary">Download Will Call List</button>
+        <button onclick="emailSupplier()" class="premium-button premium-secondary">Email to Supplier</button>
+    </div>
+</div>
+
+            <!-- Install/Delivery Tab -->
+            <div id="installDelivery" class="tab-content tesla-theme">
+                <h2 class="tesla-header">Install & Delivery Management</h2>
+                <div class="business-section tesla-section">
+                    <h3>Today's Schedule</h3>
+                    <div class="button-group tesla-button-group">
+                        <button onclick="filterSchedule('all')">All</button>
+                        <button onclick="filterSchedule('install')">Installs</button>
+                        <button onclick="filterSchedule('delivery')">Deliveries</button>
+                    </div>
+                    <div class="button-group tesla-button-group">
+                        <button onclick="filterByClientType('all')">All Clients</button>
+                        <button onclick="filterByClientType('residential')">Residential</button>
+                        <button onclick="filterByClientType('commercial')">Commercial</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table id="scheduleTable">
+                            <thead>
+                                <tr>
+                                    <th>Time</th><th>Type</th><th>Client</th><th>Address</th>
+                                    <th>Items</th><th>Status</th><th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="business-section tesla-section">
+                    <h3>Route Planning</h3>
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label>Date:</label>
+                            <input type="date" id="routeDate">
+                        </div>
+                        <div class="input-group">
+                            <label>Driver/Installer:</label>
+                            <select id="staffSelect">
+                                <option value="">Select Staff...</option>
+                                <option value="driver1">Driver 1</option>
+                                <option value="driver2">Driver 2</option>
+                                <option value="installer1">Installer 1</option>
+                                <option value="installer2">Installer 2</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="route-map">Map Integration</div>
+                </div>
+                <div class="business-section tesla-section">
+                    <h3>Installation Requirements</h3>
+                    <div class="table-responsive">
+                        <table id="installationTable">
+                            <thead>
+                                <tr>
+                                    <th>Order #</th><th>Window Count</th><th>Special Requirements</th>
+                                    <th>Est. Duration</th><th>Tools Needed</th><th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="business-section tesla-section">
+                    <h3>Delivery Notes</h3>
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label>Order Number:</label>
+                            <input type="text" id="deliveryOrderNum">
+                        </div>
+                        <div class="input-group">
+                            <label>Delivery Instructions:</label>
+                            <textarea id="deliveryNotes"></textarea>
+                        </div>
+                    </div>
+                    <button onclick="saveDeliveryNotes()">Save Notes</button>
+                </div>
+                <div class="business-section tesla-section">
+                    <h3>Photo Documentation</h3>
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label>Order Number:</label>
+                            <input type="text" id="photoOrderNum">
+                        </div>
+                        <div class="input-group">
+                            <label>Upload Photos:</label>
+                            <input type="file" id="photoUpload" multiple accept="image/*">
+                        </div>
+                    </div>
+                    <div class="photo-grid"></div>
+                    <button onclick="uploadPhotos()" class="mt-20">Upload Photos</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Pick Sheet Modal -->
+<div id="pickSheetModal" class="premium-modal">
+    <div class="premium-modal-content">
+        <span class="premium-close-modal" onclick="closePickSheetModal()">×</span>
+        <div class="premium-details-container">
+            <div class="premium-info-section">
+                <div id="pickSheetDetails"></div>
+            </div>
+            <div class="premium-info-section">
+                <h3 class="premium-subheader">Items to Pick</h3>
+                <div id="pickingForm" class="premium-table-responsive"></div>
+            </div>
+        </div>
+        <div class="premium-button-group">
+            <button onclick="completePicking()" class="premium-button premium-primary">Complete Picking</button>
+            <button onclick="window.print()" class="premium-button premium-secondary">Print Details</button>
+            <button onclick="closePickSheetModal()" class="premium-button premium-cancel">Close</button>
+        </div>
+    </div>
+</div>
+
+    <script src="core.js"></script>
+    <script src="dashboard.js"></script>
+    <script src="workOrders.js"></script>
+    <script src="invoices.js"></script>
+    <script src="pickSheet.js"></script>
+    <script src="cutting.js"></script>
+    <script src="inventory.js"></script>
+    <script src="clientPortal.js"></script>
+    <script src="willCall.js"></script>
+    <script src="installDelivery.js"></script>
+
+    <div id="universalModal" class="premium-modal">
+    <div class="premium-modal-content">
+        <span class="premium-close-modal" onclick="closeModal()">×</span>
+        <h2 class="premium-subheader">Order Details</h2>
+        <div class="premium-details-container">
+            <!-- Dynamic content will be inserted here -->
+        </div>
+        <div class="premium-button-group">
+            <!-- Dynamic buttons will be inserted here -->
+        </div>
+    </div>
+</div>
+</body>
+</html>

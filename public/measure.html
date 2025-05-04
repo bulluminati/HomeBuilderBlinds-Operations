@@ -1,0 +1,2813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home Builder Blinds Measurement Worksheet</title>
+  <style>
+    /* Essential styling for the measurement system */
+    :root {
+      --primary-blue: #1e3d59;
+      --secondary-blue: #3d5a80;
+      --accent-gold: #bc9355;
+      --black: #000000;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Times New Roman', serif;
+      line-height: 1.6;
+      color: #333;
+      background-color: #f5f5f5;
+      padding-bottom: 40px;
+    }
+    
+    .header {
+      background-color: var(--primary-blue);
+      color: white;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    
+    .flex {
+      display: flex;
+    }
+    
+    .justify-between {
+      justify-content: space-between;
+    }
+    
+    .items-center {
+      align-items: center;
+    }
+    
+    h1 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+    
+    .btn-primary, .btn-secondary {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-left: 8px;
+    }
+    
+    .btn-primary {
+      background-color: var(--accent-gold);
+      color: white;
+    }
+    
+    .btn-secondary {
+      background-color: var(--secondary-blue);
+      color: white;
+    }
+    
+    .btn-sm {
+      padding: 4px 8px;
+      font-size: 0.8rem;
+    }
+    
+    .customer-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      gap: 20px;
+    }
+    
+    .customer-info > div {
+      flex: 1;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    
+    th {
+      background-color: var(--primary-blue);
+      color: white;
+    }
+    
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 30px 0 15px;
+      padding-bottom: 5px;
+      border-bottom: 2px solid var(--primary-blue);
+    }
+    
+    .section-title h2 {
+      color: var(--primary-blue);
+      margin: 0;
+    }
+    
+    .table-container {
+      overflow-x: auto;
+    }
+    
+    .square-input {
+      width: 100%;
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+    }
+    
+        /* Adjust header height and angle for better readability */
+    .vertical {
+      height: 100px; /* Increase height from current value */
+      max-width: 40px; /* Slightly wider to accommodate angled text */
+      position: relative;
+    }
+
+    .rotated-header {
+      transform: rotate(-45deg); /* Change from -90deg to -45deg */
+      position: absolute;
+      left: -10px; /* Adjust this value as needed */
+      bottom: 40px; /* Adjust this value as needed */
+      width: 70px; /* Can be narrower with 45-degree angle */
+      text-align: left;
+      font-size: 11px; /* Slightly smaller font */
+      white-space: nowrap;
+    }
+    /* Update the table structure to accommodate the taller headers */
+.measurement-table th {
+  padding: 6px 3px;
+  vertical-align: bottom;
+}
+    
+    .photo-cell {
+      width: 80px;
+    }
+    
+    .window-num-cell, .action-cell {
+      width: 80px;
+    }
+    
+    .room-cell {
+      width: 120px;
+    }
+    
+    .conditions-cell {
+      width: 200px;
+    }
+    
+    .wall-selector {
+      margin-top: 5px;
+    }
+    
+    .wall-btn {
+      width: 25px;
+      height: 25px;
+      margin-right: 3px;
+      background-color: #f0f0f0;
+      border: 1px solid #ccc;
+      cursor: pointer;
+    }
+    
+    .wall-btn.selected {
+      background-color: var(--accent-gold);
+      color: white;
+    }
+    
+    select {
+      width: 100%;
+      padding: 5px;
+      margin-bottom: 5px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+    }
+    
+    .notes-area {
+      width: 100%;
+      min-height: 100px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      resize: vertical;
+    }
+    
+    .footer-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 30px;
+    }
+    
+    .text-right {
+      text-align: right;
+    }
+    
+    .font-bold {
+      font-weight: bold;
+    }
+    
+    .bg-gray-100 {
+      background-color: #f3f4f6;
+    }
+    
+    /* Print specific styles */
+    @media print {
+      .no-print {
+        display: none;
+      }
+      
+      body {
+        background-color: white;
+      }
+      
+      .container {
+        width: 100%;
+        max-width: none;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .customer-info {
+        flex-direction: column;
+      }
+      
+      .vertical {
+        width: 50px;
+      }
+      
+      .rotated-header {
+        left: 20px;
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="flex justify-between items-center">
+      <h1>Home Builder Blinds Measurement Worksheet</h1>
+      <div>
+        <button id="saveBtn" class="btn-secondary">
+          <span>💾</span> Save
+        </button>
+        <button id="printBtn" class="btn-secondary">
+          <span>🖨️</span> Print
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="customer-info">
+      <div>
+        <table>
+          <tr>
+            <td class="bg-gray-100">Address:</td>
+            <td>
+              <input type="text" id="customerAddress" />
+            </td>
+          </tr>
+          <tr>
+            <td class="bg-gray-100">Name:</td>
+            <td>
+              <input type="text" id="customerName" />
+            </td>
+          </tr>
+          <tr>
+            <td class="bg-gray-100">Phone:</td>
+            <td>
+              <input type="text" id="customerPhone" />
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <table>
+          <tr>
+            <td class="bg-gray-100">City:</td>
+            <td>
+              <input type="text" id="customerCity" />
+            </td>
+          </tr>
+          <tr>
+            <td class="bg-gray-100">State:</td>
+            <td>
+              <input type="text" id="customerState" />
+            </td>
+          </tr>
+          <tr>
+            <td class="bg-gray-100">Zip:</td>
+            <td>
+              <input type="text" id="customerZip" />
+            </td>
+          </tr>
+          <tr>
+            <td class="bg-gray-100">Date:</td>
+            <td>
+              <input type="date" id="measurementDate" />
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="section-title">
+      <h2>Window Measurements</h2>
+      <button id="addWindowBtn" class="btn-primary">
+        + Add Window
+      </button>
+    </div>
+
+    <div class="table-container">
+      <table class="measurement-table">
+        <thead>
+          <tr>
+            <th class="photo-cell">PHOTO</th>
+            <th class="conditions-cell">SPECIAL CONDITIONS</th>
+            <th class="window-num-cell">WINDOW #</th>
+            <th class="room-cell">ROOM</th>
+            <th class="vertical">
+              <span class="rotated-header">TOP</span>
+            </th>
+            <th class="vertical">
+              <span class="rotated-header">MIDDLE</span>
+            </th>
+            <th class="vertical">
+              <span class="rotated-header">BOTTOM</span>
+            </th>
+            <th class="vertical">
+              <span class="rotated-header">HEIGHT</span>
+            </th>
+            <th class="vertical">
+              <span class="rotated-header">DEPTH</span>
+            </th>
+            <th class="vertical">
+              <span class="rotated-header">LEFT</span>
+            </th>
+            <th class="vertical">
+              <span class="rotated-header">RIGHT</span>
+            </th>
+            <th class="vertical">
+              <span class="rotated-header">TRIM TO TRIM</span>
+            </th>
+            <th class="vertical">
+              <span class="rotated-header">TOP TRIM TO OPENING</span>
+            </th>
+            <th class="vertical">
+              <span class="rotated-header">TOP TO BOTTOM</span>
+            </th>
+            <th class="vertical">
+              <span class="rotated-header">TOP TO FLOOR</span>
+            </th>
+            <th class="vertical">
+              <span class="rotated-header">FLOOR TO CROWN</span>
+            </th>
+            <th class="vertical">
+              <span class="rotated-header">CEILING TO FLOOR</span>
+            </th>
+            <th class="action-cell">ACTION</th>
+          </tr>
+        </thead>
+        <tbody id="windowsTableBody">
+          <tr class="window-row">
+            <td class="photo-cell">
+              <button type="button" class="btn-secondary btn-sm" onclick="addWindowPhoto(this)">Add</button>
+            </td>
+            <td>
+              <select class="window-type-select">
+                <option value="">Window Type</option>
+                <option value="window">Window</option>
+                <option value="door">Door</option>
+                <option value="frenchdoor-left">French Door Left</option>
+                <option value="frenchdoor-right">French Door Right</option>
+                <option value="other">Other</option>
+              </select>
+              <select class="wall-type-select">
+                <option value="none">Wall Type: None</option>
+                <option value="multilevel">Multi Level Inside Mount</option>
+                <option value="trim">Trim</option>
+                <option value="sill">Sill</option>
+                <option value="bay">Bay/Angle</option>
+                <option value="corner">Corner</option>
+                <option value="pocket">Pocket</option>
+                <option value="curved">Curved Wall</option>
+              </select>
+              <div class="wall-selector">
+                <span>Wall:</span>
+                <button type="button" class="wall-btn">A</button>
+                <button type="button" class="wall-btn">B</button>
+                <button type="button" class="wall-btn">C</button>
+                <button type="button" class="wall-btn">D</button>
+              </div>
+            </td>
+            <td>1</td>
+            <td>
+              <input type="text" class="square-input" placeholder="Room Label">
+            </td>
+            <td>
+              <input type="text" class="square-input">
+            </td>
+            <td>
+              <input type="text" class="square-input">
+            </td>
+            <td>
+              <input type="text" class="square-input">
+            </td>
+            <td>
+              <input type="text" class="square-input">
+            </td>
+            <td>
+              <input type="text" class="square-input">
+            </td>
+            <td>
+              <input type="text" class="square-input">
+            </td>
+            <td>
+              <input type="text" class="square-input">
+            </td>
+            <td>
+              <input type="text" class="square-input">
+            </td>
+            <td>
+              <input type="text" class="square-input">
+            </td>
+            <td>
+              <input type="text" class="square-input">
+            </td>
+            <td>
+              <input type="text" class="square-input">
+            </td>
+            <td>
+              <input type="text" class="square-input">
+            </td>
+            <td>
+              <input type="text" class="square-input">
+            </td>
+            <td>
+              <button type="button" class="btn-secondary btn-sm" onclick="deleteWindow(this)">🗑️</button>
+            </td>
+          </tr>
+          <!-- Multi level measurements (initially hidden) -->
+          <tr class="multi-level-measurements" id="multilevel-1">
+            <td colspan="4" class="text-right font-bold">Bottom Measurements:</td>
+            <td>
+              <input type="text" class="square-input" placeholder="Top">
+            </td>
+            <td>
+              <input type="text" class="square-input" placeholder="Middle">
+            </td>
+            <td>
+              <input type="text" class="square-input" placeholder="Bottom">
+            </td>
+            <td colspan="11"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Multi-pane Section Toggle -->
+    <div class="section-title">
+      <div>
+        <label>
+          <input type="checkbox" id="showMultipaneToggle">
+          <span class="font-semibold">Show Multi-Pane Window Section</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Multi-pane Section (Initially Hidden) -->
+    <div id="multipaneSection" class="multipane-section" style="display: none;">
+      <div class="section-title">
+        <h2>Multi-Pane Window Details</h2>
+      </div>
+
+      <div class="table-container">
+        <table class="measurement-table">
+          <thead>
+            <tr>
+              <th class="window-num-cell">WINDOW #</th>
+              <th class="vertical">
+                <span class="rotated-header">TYPE</span>
+              </th>
+              <th class="vertical">
+                <span class="rotated-header">PANE 1 WIDTH</span>
+              </th>
+              <th class="vertical">
+                <span class="rotated-header">PANE 1 HEIGHT</span>
+              </th>
+              <th class="vertical">
+                <span class="rotated-header">PANE 2 WIDTH</span>
+              </th>
+              <th class="vertical">
+                <span class="rotated-header">PANE 2 HEIGHT</span>
+              </th>
+              <th class="vertical">
+                <span class="rotated-header">PANE 3 WIDTH</span>
+              </th>
+              <th class="vertical">
+                <span class="rotated-header">PANE 3 HEIGHT</span>
+              </th>
+              <th class="vertical">
+                <span class="rotated-header">PANE 4 WIDTH</span>
+              </th>
+              <th class="vertical">
+                <span class="rotated-header">PANE 4 HEIGHT</span>
+              </th>
+              <th class="vertical">
+                <span class="rotated-header">PANE 5 WIDTH</span>
+              </th>
+              <th class="vertical">
+                <span class="rotated-header">PANE 5 HEIGHT</span>
+              </th>
+              <th class="vertical">
+                <span class="rotated-header">NOTES</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody id="multipaneTableBody">
+            <!-- Multipane rows will be added here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Door Measurements Section -->
+    <div class="section-title">
+      <h2>Door Measurements</h2>
+      <button id="addDoorBtn" class="btn-primary">
+        + Add Door
+      </button>
+    </div>
+
+    <div class="table-container">
+      <table class="measurement-table" id="doorsTable">
+        <thead>
+          <tr>
+            <th class="photo-cell">PHOTO</th>
+            <th class="conditions-cell">SPECIAL CONDITIONS</th>
+            <th class="window-num-cell">DOOR #</th>
+            <th class="room-cell">ROOM</th>
+            <th class="vertical">
+              <span class="rotated-header">LEFT OF GLASS</span>
+            </th>
+            <th class="vertical">
+              <span class="rotated-header">GLASS WIDTH</span>
+            </th>
+            <th class="vertical">
+              <span class="rotated-header">RIGHT OF GLASS</span>
+            </th>
+            <th class="vertical">
+              <span class="rotated-header">WINDOW LENGTH</span>
+            </th>
+            <th class="vertical">
+              <span class="rotated-header">DOOR LENGTH</span>
+            </th>
+            <th class="vertical">
+              <span class="rotated-header">HANDLE PROJECTION</span>
+            </th>
+            <th class="vertical">
+              <span class="rotated-header">HANDLE INSET</span>
+            </th>
+            <th class="vertical">
+              <span class="rotated-header">OPENS</span>
+            </th>
+            <th class="vertical">
+              <span class="rotated-header">HANDLE POSITION</span>
+            </th>
+            <th class="vertical">
+              <span class="rotated-header">NOTES</span>
+            </th>
+            <th class="action-cell">ACTION</th>
+          </tr>
+        </thead>
+        <tbody id="doorsTableBody">
+          <!-- Door rows will be added here -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Motorization Section -->
+    <div class="section-title">
+      <h2>Motorization</h2>
+    </div>
+
+    <div class="table-container">
+      <table class="measurement-table">
+        <thead>
+          <tr>
+            <th class="window-num-cell">WINDOW #</th>
+            <th class="vertical">
+              <span class="rotated-header">CORD LENGTH</span>
+            </th>
+            <th class="vertical">
+              <span class="rotated-header">MOTOR POSITION</span>
+            </th>
+            <th class="vertical">
+              <span class="rotated-header">NOTES</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="window-row">
+            <td>All</td>
+            <td>
+              <input type="text" class="square-input">
+            </td>
+            <td>
+              <input type="text" class="square-input">
+            </td>
+            <td>
+              <input type="text" class="square-input">
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- General Notes Section -->
+    <div class="section-title">
+      <h2>General Notes</h2>
+    </div>
+    <div>
+      <textarea class="notes-area" placeholder="Additional notes, special instructions, etc."></textarea>
+    </div>
+  
+      <!-- Footer with Actions -->
+    <div class="footer-actions no-print">
+      <button id="resetBtn" class="btn-secondary">
+        Reset Form
+      </button>
+      <button id="printBtn2" class="btn-primary">
+        Print Worksheet
+      </button>
+      <button id="saveBtn2" class="btn-primary">
+        Save Measurements
+      </button>
+      <button id="viewDataBtn" class="btn-secondary">
+        <span>👁️</span> View Saved Data
+      </button>
+      <button id="emailDataBtn" class="btn-primary">
+        <span>📧</span> Email Data
+      </button>
+      <button id="downloadDataBtn" class="btn-primary">
+        <span>💾</span> Download JSON
+      </button>
+    </div>
+
+    <!-- Add this JavaScript to connect the buttons -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        // Connect the buttons to their functions
+        document.getElementById('viewDataBtn').addEventListener('click', viewSavedData);
+        document.getElementById('emailDataBtn').addEventListener('click', exportDataByEmail);
+        document.getElementById('downloadDataBtn').addEventListener('click', downloadMeasurementData);
+      });
+    </script>
+    </div>
+  </div>
+    
+  <script>
+    // Global variables
+    let photoCounter = 0;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize the form
+        initForm();
+        
+        // Add event listeners
+        document.getElementById('addWindowBtn').addEventListener('click', addWindow);
+        document.getElementById('addDoorBtn').addEventListener('click', addDoor);
+        document.getElementById('showMultipaneToggle').addEventListener('change', toggleMultipaneSection);
+        document.getElementById('saveBtn').addEventListener('click', saveMeasurements);
+        document.getElementById('saveBtn2').addEventListener('click', saveMeasurements);
+        document.getElementById('printBtn').addEventListener('click', printWorksheet);
+        document.getElementById('printBtn2').addEventListener('click', printWorksheet);
+        document.getElementById('resetBtn').addEventListener('click', resetForm);
+        
+        // Check if we're in an iframe
+        if (window.location !== window.parent.location) {
+            document.body.classList.add('in-iframe');
+            document.querySelector('.header').classList.add('in-iframe');
+            setupIframeMode();
+        }
+        
+        // Set today's date as default
+        const today = new Date().toISOString().slice(0, 10);
+        document.getElementById('measurementDate').value = today;
+        
+        // Try to load saved measurements from localStorage
+        loadMeasurements();
+    });
+
+    function initForm() {
+        // Initialize the first window row
+        initializeWallTypeSelects();
+        
+        // Hide the multilevel row initially
+        const multilevelRows = document.querySelectorAll('.multi-level-measurements');
+        multilevelRows.forEach(row => {
+            row.style.display = 'none';
+        });
+    }
+
+    function initializeWallTypeSelects() {
+        // Add change event to all wall type selects
+        const wallTypeSelects = document.querySelectorAll('.wall-type-select');
+        wallTypeSelects.forEach(select => {
+            select.addEventListener('change', function() {
+                toggleMultiLevel(this);
+            });
+        });
+        
+        // Initialize wall buttons
+        const wallButtons = document.querySelectorAll('.wall-btn');
+        wallButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                toggleWallSelection(this);
+            });
+        });
+    }
+
+    function toggleMultiLevel(selectElement) {
+        const row = selectElement.closest('tr');
+        const rowIndex = Array.from(row.parentNode.children).indexOf(row);
+        const nextRow = row.parentNode.querySelector(`#multilevel-${rowIndex + 1}`);
+        
+        if (selectElement.value === 'multilevel') {
+            // Check if multilevel row exists
+            if (nextRow) {
+                nextRow.style.display = 'table-row';
+            } else {
+                // Create new multilevel row if it doesn't exist
+                const newMultiLevelRow = createMultiLevelRow(rowIndex + 1);
+                row.insertAdjacentElement('afterend', newMultiLevelRow);
+            }
+        } else {
+            // Hide multilevel row if it exists
+            if (nextRow) {
+                nextRow.style.display = 'none';
+            }
+        }
+    }
+
+    function toggleWallSelection(button) {
+        // Toggle the selected class on the wall button
+        button.classList.toggle('selected');
+    }
+
+    function createMultiLevelRow(rowIndex) {
+        const tr = document.createElement('tr');
+        tr.className = 'multi-level-measurements';
+        tr.id = `multilevel-${rowIndex}`;
+        
+        tr.innerHTML = `
+            <td colspan="4" class="text-right font-bold">Bottom Measurements:</td>
+            <td>
+                <input type="text" class="square-input" placeholder="Top">
+            </td>
+            <td>
+                <input type="text" class="square-input" placeholder="Middle">
+            </td>
+            <td>
+                <input type="text" class="square-input" placeholder="Bottom">
+            </td>
+            <td colspan="11"></td>
+        `;
+        
+        return tr;
+    }
+
+    function addWindow() {
+        const tbody = document.getElementById('windowsTableBody');
+        const windowRows = tbody.querySelectorAll('.window-row');
+        const windowNumber = windowRows.length + 1;
+        
+        const newRow = document.createElement('tr');
+        newRow.className = 'window-row';
+        
+        newRow.innerHTML = `
+            <td class="photo-cell">
+                <button type="button" class="btn-secondary btn-sm" onclick="addWindowPhoto(this)">Add</button>
+            </td>
+            <td>
+                <select class="window-type-select">
+                    <option value="">Window Type</option>
+                    <option value="window">Window</option>
+                    <option value="door">Door</option>
+                    <option value="frenchdoor-left">French Door Left</option>
+                    <option value="frenchdoor-right">French Door Right</option>
+                    <option value="other">Other</option>
+                </select>
+                <select class="wall-type-select">
+                    <option value="none">Wall Type: None</option>
+                    <option value="multilevel">Multi Level Inside Mount</option>
+                    <option value="trim">Trim</option>
+                    <option value="sill">Sill</option>
+                    <option value="bay">Bay/Angle</option>
+                    <option value="corner">Corner</option>
+                    <option value="pocket">Pocket</option>
+                    <option value="curved">Curved Wall</option>
+                </select>
+                <div class="wall-selector">
+                    <span>Wall:</span>
+                    <button type="button" class="wall-btn">A</button>
+                    <button type="button" class="wall-btn">B</button>
+                    <button type="button" class="wall-btn">C</button>
+                    <button type="button" class="wall-btn">D</button>
+                </div>
+            </td>
+            <td>${windowNumber}</td>
+            <td>
+                <input type="text" class="square-input" placeholder="Room Label">
+            </td>
+            <td>
+                <input type="text" class="square-input">
+            </td>
+            <td>
+                <input type="text" class="square-input">
+            </td>
+            <td>
+                <input type="text" class="square-input">
+            </td>
+            <td>
+                <input type="text" class="square-input">
+            </td>
+            <td>
+                <input type="text" class="square-input">
+            </td>
+            <td>
+                <input type="text" class="square-input">
+            </td>
+            <td>
+                <input type="text" class="square-input">
+            </td>
+            <td>
+                <input type="text" class="square-input">
+            </td>
+            <td>
+                <input type="text" class="square-input">
+            </td>
+            <td>
+                <input type="text" class="square-input">
+            </td>
+            <td>
+                <input type="text" class="square-input">
+            </td>
+            <td>
+                <input type="text" class="square-input">
+            </td>
+            <td>
+                <input type="text" class="square-input">
+            </td>
+            <td>
+                <button type="button" class="btn-secondary btn-sm" onclick="deleteWindow(this)">🗑️</button>
+            </td>
+        `;
+        
+        tbody.appendChild(newRow);
+        
+        // Initialize the wall type select and buttons for the new row
+        const wallTypeSelect = newRow.querySelector('.wall-type-select');
+        wallTypeSelect.addEventListener('change', function() {
+            toggleMultiLevel(this);
+        });
+        
+        const wallButtons = newRow.querySelectorAll('.wall-btn');
+        wallButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                toggleWallSelection(this);
+            });
+        });
+        
+        // Add to multipane table if toggled on
+        if (document.getElementById('showMultipaneToggle').checked) {
+            addMultipaneRow(windowNumber);
+        }
+    }
+
+    function addDoor() {
+        const tbody = document.getElementById('doorsTableBody');
+        const doorRows = tbody.querySelectorAll('tr');
+        const doorNumber = doorRows.length + 1;
+        
+        const newRow = document.createElement('tr');
+        newRow.className = 'door-row';
+        
+        newRow.innerHTML = `
+            <td class="photo-cell">
+                <button type="button" class="btn-secondary btn-sm" onclick="addDoorPhoto(this)">Add</button>
+            </td>
+            <td>
+                <select class="door-type-select">
+                    <option value="">Door Type</option>
+                    <option value="single">Single</option>
+                    <option value="double">Double</option>
+                    <option value="sliding">Sliding</option>
+                    <option value="french">French</option>
+                    <option value="other">Other</option>
+                </select>
+                <div class="wall-selector">
+                    <span>Wall:</span>
+                    <button type="button" class="wall-btn">A</button>
+                    <button type="button" class="wall-btn">B</button>
+                    <button type="button" class="wall-btn">C</button>
+                    <button type="button" class="wall-btn">D</button>
+                </div>
+            </td>
+            <td>${doorNumber}</td>
+            <td>
+                <input type="text" class="square-input" placeholder="Room Label">
+            </td>
+            <td>
+                <input type="text" class="square-input">
+            </td>
+            <td>
+                <input type="text" class="square-input">
+            </td>
+            <td>
+                <input type="text" class="square-input">
+            </td>
+            <td>
+                <input type="text" class="square-input">
+            </td>
+            <td>
+                <input type="text" class="square-input">
+            </td>
+            <td>
+                <input type="text" class="square-input">
+            </td>
+            <td>
+                <input type="text" class="square-input">
+            </td>
+            <td>
+                <select class="opening-direction">
+                    <option value="in">Inward</option><select class="opening-direction">
+                    <option value="in">Inward</option>
+                    <option value="out">Outward</option>
+                    <option value="slide-left">Slide Left</option>
+                    <option value="slide-right">Slide Right</option>
+                </select>
+            </td>
+            <td>
+                <select class="handle-position">
+                    <option value="left">Left</option>
+                    <option value="right">Right</option>
+                    <option value="both">Both</option>
+                </select>
+            </td>
+            <td>
+                <input type="text" class="square-input">
+            </td>
+            <td>
+                <button type="button" class="btn-secondary btn-sm" onclick="deleteDoor(this)">🗑️</button>
+            </td>
+        `;
+        
+        tbody.appendChild(newRow);
+        
+        // Initialize wall buttons for the new row
+        const wallButtons = newRow.querySelectorAll('.wall-btn');
+        wallButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                toggleWallSelection(this);
+            });
+        });
+    }
+
+    // Define as global functions to be called from inline onclick attributes
+    window.addWindowPhoto = function(button) {
+        // Create file input
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'image/*';
+        fileInput.style.display = 'none';
+        
+        // Add to DOM
+        document.body.appendChild(fileInput);
+        
+        // Handle file selection
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    // Create image thumbnail
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.style.width = '60px';
+                    img.style.height = '40px';
+                    img.style.objectFit = 'cover';
+                    img.style.cursor = 'pointer';
+                    
+                    // Replace button with image
+                    const cell = button.parentElement;
+                    cell.innerHTML = '';
+                    cell.appendChild(img);
+                    
+                    // Add click event to image to replace it
+                    img.addEventListener('click', function() {
+                        cell.innerHTML = '<button class="btn-secondary btn-sm" onclick="addWindowPhoto(this)">Add</button>';
+                    });
+                };
+                
+                reader.readAsDataURL(file);
+            }
+            
+            // Remove file input
+            document.body.removeChild(fileInput);
+        });
+        
+        // Trigger file selection
+        fileInput.click();
+    };
+
+    window.addDoorPhoto = function(button) {
+        // Same implementation as addWindowPhoto
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'image/*';
+        fileInput.style.display = 'none';
+        
+        document.body.appendChild(fileInput);
+        
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.style.width = '60px';
+                    img.style.height = '40px';
+                    img.style.objectFit = 'cover';
+                    img.style.cursor = 'pointer';
+                    
+                    const cell = button.parentElement;
+                    cell.innerHTML = '';
+                    cell.appendChild(img);
+                    
+                    img.addEventListener('click', function() {
+                        cell.innerHTML = '<button class="btn-secondary btn-sm" onclick="addDoorPhoto(this)">Add</button>';
+                    });
+                };
+                
+                reader.readAsDataURL(file);
+            }
+            
+            document.body.removeChild(fileInput);
+        });
+        
+        fileInput.click();
+    };window.deleteWindow = function(button) {
+        const row = button.closest('tr');
+        const windowNumber = parseInt(row.querySelector('td:nth-child(3)').textContent);
+        
+        // Remove window row
+        row.remove();
+        
+        // Check if there's a multilevel row for this window and remove it
+        const multilevelRow = document.getElementById(`multilevel-${windowNumber}`);
+        if (multilevelRow) {
+            multilevelRow.remove();
+        }
+        
+        // Remove from multipane table if it exists
+        if (document.getElementById('showMultipaneToggle').checked) {
+            const multipaneTableBody = document.getElementById('multipaneTableBody');
+            const multipaneRows = multipaneTableBody.querySelectorAll('tr');
+            
+            multipaneRows.forEach(mpRow => {
+                const mpWindowNum = parseInt(mpRow.querySelector('td:first-child').textContent);
+                if (mpWindowNum === windowNumber) {
+                    mpRow.remove();
+                }
+            });
+        }
+        
+        // Renumber windows
+        renumberWindows();
+    };
+
+    window.deleteDoor = function(button) {
+        const row = button.closest('tr');
+        row.remove();
+        
+        // Renumber doors
+        const doorRows = document.querySelectorAll('#doorsTableBody tr');
+        doorRows.forEach((row, index) => {
+            row.querySelector('td:nth-child(3)').textContent = index + 1;
+        });
+    };
+
+    function renumberWindows() {
+        // Renumber window rows
+        const windowRows = document.querySelectorAll('#windowsTableBody .window-row');
+        windowRows.forEach((row, index) => {
+            row.querySelector('td:nth-child(3)').textContent = index + 1;
+        });
+        
+        // Renumber multipane rows if visible
+        if (document.getElementById('showMultipaneToggle').checked) {
+            const multipaneRows = document.querySelectorAll('#multipaneTableBody tr');
+            multipaneRows.forEach((row, index) => {
+                row.querySelector('td:first-child').textContent = index + 1;
+            });
+        }
+    }
+
+    function toggleMultipaneSection() {
+        const multipaneSection = document.getElementById('multipaneSection');
+        const isChecked = document.getElementById('showMultipaneToggle').checked;
+        
+        multipaneSection.style.display = isChecked ? 'block' : 'none';
+        
+        if (isChecked) {
+            // Populate multipane table with existing windows
+            populateMultipaneTable();
+        }
+    }
+
+    function populateMultipaneTable() {
+        const multipaneTableBody = document.getElementById('multipaneTableBody');
+        multipaneTableBody.innerHTML = '';
+        
+        const windowRows = document.querySelectorAll('#windowsTableBody .window-row');
+        windowRows.forEach((row, index) => {
+            const windowNumber = index + 1;
+            addMultipaneRow(windowNumber);
+        });
+    }
+
+    function addMultipaneRow(windowNumber) {
+        const multipaneTableBody = document.getElementById('multipaneTableBody');
+        
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+            <td>${windowNumber}</td>
+            <td>
+                <select class="multipane-type">
+                    <option value="2-pane">2-Pane</option>
+                    <option value="3-pane">3-Pane</option>
+                    <option value="4-pane">4-Pane</option>
+                    <option value="5-pane">5-Pane</option>
+                </select>
+            </td>
+            <td><input type="text" class="square-input"></td>
+            <td><input type="text" class="square-input"></td>
+            <td><input type="text" class="square-input"></td>
+            <td><input type="text" class="square-input"></td>
+            <td><input type="text" class="square-input"></td>
+            <td><input type="text" class="square-input"></td>
+            <td><input type="text" class="square-input"></td>
+            <td><input type="text" class="square-input"></td>
+            <td><input type="text" class="square-input"></td>
+            <td><input type="text" class="square-input"></td>
+            <td><input type="text" class="square-input"></td>
+        `;
+        
+        multipaneTableBody.appendChild(newRow);
+    }
+    // Updated saveMeasurements function that works with core.js pattern
+    function saveMeasurements() {
+    try {
+        console.log("saveMeasurements function called");
+        
+        // Create data object to store all measurements
+        const measurementData = {
+            customerInfo: {
+                address: document.getElementById('customerAddress').value,
+                name: document.getElementById('customerName').value,
+                phone: document.getElementById('customerPhone').value,
+                city: document.getElementById('customerCity').value,
+                state: document.getElementById('customerState').value,
+                zip: document.getElementById('customerZip').value,
+                date: document.getElementById('measurementDate').value
+            },
+            windows: getWindowData(),
+            multipane: getMultipaneData(),
+            doors: getDoorData(),
+            motorization: getMotorizationData(),
+            notes: document.querySelector('.notes-area').value,
+            lastSaved: new Date().toISOString()
+        };
+        
+        // Validate customer name
+        if (!measurementData.customerInfo.name || measurementData.customerInfo.name.trim() === '') {
+            alert('Please enter a customer name before saving.');
+            return;
+        }
+        
+        // Generate a unique key for this measurement
+        const customerName = measurementData.customerInfo.name.replace(/\s+/g, '_');
+        const timestamp = new Date().getTime();
+        const measurementKey = `blinds_measurement_${customerName}_${timestamp}`;
+        
+        // Save with a unique key (allows multiple measurements)
+        localStorage.setItem(measurementKey, JSON.stringify(measurementData));
+        
+        // Also save to traditional key for backward compatibility
+        localStorage.setItem('blindMeasurements', JSON.stringify(measurementData));
+        
+        console.log(`Saved measurement with key: ${measurementKey}`);
+        console.log(`Total items in localStorage: ${localStorage.length}`);
+        
+        alert('Measurements saved successfully! You can view them with the "View Saved Data" button.');
+        
+    } catch (error) {
+        console.error('Error saving measurements:', error);
+        alert('There was an error saving your measurements: ' + error.message);
+    }
+}
+    // Add a debugging function to see what's in localStorage
+    function inspectLocalStorage() {
+        console.log("=== LOCALSTORAGE CONTENTS ===");
+        
+        if (localStorage.length === 0) {
+            console.log("LocalStorage is empty");
+            alert("LocalStorage is empty - no saved data found!");
+            return;
+        }
+        
+        let measurementItems = [];
+        
+        // Log all items in localStorage
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            let value = localStorage.getItem(key);
+            
+            try {
+                // Try to parse as JSON
+                const parsed = JSON.parse(value);
+                // Check if it looks like measurement data
+                if (parsed.customerInfo || parsed.windows || parsed.doors) {
+                    measurementItems.push({
+                        key: key,
+                        customerName: parsed.customerInfo?.name || "Unnamed",
+                        lastSaved: parsed.lastSaved || "Unknown date"
+                    });
+                }
+            } catch (e) {
+                // Not valid JSON, skip
+            }
+        }
+        
+        if (measurementItems.length === 0) {
+            console.log("No measurement data found");
+            alert("No measurement data found in localStorage");
+        } else {
+            console.log("Found measurement items:", measurementItems);
+            let message = `Found ${measurementItems.length} measurement(s):\n\n`;
+            measurementItems.forEach(item => {
+                message += `- ${item.customerName} (${item.lastSaved})\n`;
+            });
+            alert(message);
+        }
+    }
+
+    // Add this at the end of your DOMContentLoaded event
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add a debug button to check localStorage
+        const debugBtn = document.createElement('button');
+        debugBtn.textContent = '🔍 Debug Storage';
+        debugBtn.className = 'btn-secondary';
+        debugBtn.style.backgroundColor = '#ff9900';
+        debugBtn.onclick = inspectLocalStorage;
+        
+        const footerActions = document.querySelector('.footer-actions');
+        if (footerActions) {
+            footerActions.appendChild(debugBtn);
+        }
+        
+        // Fix the save buttons
+        const saveBtn = document.getElementById('saveBtn');
+        if (saveBtn) {
+            const newSaveBtn = saveBtn.cloneNode(true);
+            saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
+            newSaveBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log("Save button clicked");
+                saveMeasurements();
+            });
+        }
+        
+        const saveBtn2 = document.getElementById('saveBtn2');
+        if (saveBtn2) {
+            const newSaveBtn2 = saveBtn2.cloneNode(true);
+            saveBtn2.parentNode.replaceChild(newSaveBtn2, saveBtn2);
+            newSaveBtn2.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log("Save button 2 clicked");
+                saveMeasurements();
+            });
+        }
+    });
+      // Updated loadMeasurements function to match
+      function loadMeasurements() {
+          try {
+              // Use StorageUtil if available, otherwise use direct localStorage
+              let savedData;
+              if (window.StorageUtil) {
+                  savedData = window.StorageUtil.load('blindMeasurements');
+              } else {
+                  const dataString = localStorage.getItem('blindMeasurements');
+                  savedData = dataString ? JSON.parse(dataString) : null;
+              }
+              
+              if (!savedData) return;
+              
+              // Continue with the rest of your existing loadMeasurements function...
+              // (Rest of function stays the same)
+              
+              // Load customer info
+              const customerInfo = savedData.customerInfo;
+              if (customerInfo) {
+                  document.getElementById('customerAddress').value = customerInfo.address || '';
+                  document.getElementById('customerName').value = customerInfo.name || '';
+                  document.getElementById('customerPhone').value = customerInfo.phone || '';
+                  document.getElementById('customerCity').value = customerInfo.city || '';
+                  document.getElementById('customerState').value = customerInfo.state || '';
+                  document.getElementById('customerZip').value = customerInfo.zip || '';
+                  document.getElementById('measurementDate').value = customerInfo.date || '';
+              }
+              
+              // Continue with the rest of your existing loadMeasurements function...
+              
+          } catch (error) {
+              console.error('Error loading saved measurements:', error);
+              alert('There was an error loading your saved measurements. The data might be corrupted.');
+          }
+      }
+
+    function getWindowData() {
+        const windowRows = document.querySelectorAll('#windowsTableBody .window-row');
+        const windows = [];
+        
+        windowRows.forEach((row, index) => {
+            const windowNumber = index + 1;
+            
+            // Get all inputs for this window
+            const windowData = {
+                number: windowNumber,
+                room: row.querySelector('td:nth-child(4) input').value,
+                windowType: row.querySelector('.window-type-select').value,
+                wallType: row.querySelector('.wall-type-select').value,
+                walls: getSelectedWalls(row),
+                measurements: {
+                    top: row.querySelector('td:nth-child(5) input').value,
+                    middle: row.querySelector('td:nth-child(6) input').value,
+                    bottom: row.querySelector('td:nth-child(7) input').value,
+                    height: row.querySelector('td:nth-child(8) input').value,
+                    depth: row.querySelector('td:nth-child(9) input').value,
+                    left: row.querySelector('td:nth-child(10) input').value,
+                    right: row.querySelector('td:nth-child(11) input').value,
+                    trimToTrim: row.querySelector('td:nth-child(12) input').value,
+                    topTrimToOpening: row.querySelector('td:nth-child(13) input').value,
+                    topToBottom: row.querySelector('td:nth-child(14) input').value,
+                    topToFloor: row.querySelector('td:nth-child(15) input').value,
+                    floorToCrown: row.querySelector('td:nth-child(16) input').value,
+                    ceilingToFloor: row.querySelector('td:nth-child(17) input').value
+                }
+            };
+            
+            // Check for multilevel measurements
+            const multilevelRow = document.getElementById(`multilevel-${windowNumber}`);
+            if (multilevelRow && multilevelRow.style.display !== 'none') {
+                windowData.multilevel = {
+                    top: multilevelRow.querySelector('td:nth-child(5) input').value,
+                    middle: multilevelRow.querySelector('td:nth-child(6) input').value,
+                    bottom: multilevelRow.querySelector('td:nth-child(7) input').value
+                };
+            }
+            
+            // Check for photo
+            const photoCell = row.querySelector('td:first-child');
+            if (photoCell.querySelector('img')) {
+                windowData.photo = photoCell.querySelector('img').src;
+            }
+            
+            windows.push(windowData);
+        });
+        
+        return windows;
+    }
+    
+    function getMultipaneData() {
+        if (!document.getElementById('showMultipaneToggle').checked) {
+            return [];
+        }
+        
+        const multipaneRows = document.querySelectorAll('#multipaneTableBody tr');
+        const multipanes = [];
+        
+        multipaneRows.forEach(row => {
+            const windowNumber = parseInt(row.querySelector('td:first-child').textContent);
+            const multipaneData = {
+                windowNumber: windowNumber,
+                type: row.querySelector('.multipane-type').value,
+                pane1Width: row.querySelector('td:nth-child(3) input').value,
+                pane1Height: row.querySelector('td:nth-child(4) input').value,
+                pane2Width: row.querySelector('td:nth-child(5) input').value,
+                pane2Height: row.querySelector('td:nth-child(6) input').value,
+                pane3Width: row.querySelector('td:nth-child(7) input').value,
+                pane3Height: row.querySelector('td:nth-child(8) input').value,
+                pane4Width: row.querySelector('td:nth-child(9) input').value,
+                pane4Height: row.querySelector('td:nth-child(10) input').value,
+                pane5Width: row.querySelector('td:nth-child(11) input').value,
+                pane5Height: row.querySelector('td:nth-child(12) input').value,
+                notes: row.querySelector('td:nth-child(13) input').value
+            };
+            
+            multipanes.push(multipaneData);
+        });
+        
+        return multipanes;
+    }function getDoorData() {
+        const doorRows = document.querySelectorAll('#doorsTableBody tr');
+        const doors = [];
+        
+        doorRows.forEach((row, index) => {
+            const doorNumber = index + 1;
+            
+            const doorData = {
+                number: doorNumber,
+                room: row.querySelector('td:nth-child(4) input').value,
+                doorType: row.querySelector('.door-type-select')?.value || '',
+                walls: getSelectedWalls(row),
+                measurements: {
+                    leftOfGlass: row.querySelector('td:nth-child(5) input')?.value || '',
+                    glassWidth: row.querySelector('td:nth-child(6) input')?.value || '',
+                    rightOfGlass: row.querySelector('td:nth-child(7) input')?.value || '',
+                    windowLength: row.querySelector('td:nth-child(8) input')?.value || '',
+                    doorLength: row.querySelector('td:nth-child(9) input')?.value || '',
+                    handleProjection: row.querySelector('td:nth-child(10) input')?.value || '',
+                    handleInset: row.querySelector('td:nth-child(11) input')?.value || '',
+                    opens: row.querySelector('.opening-direction')?.value || '',
+                    handlePosition: row.querySelector('.handle-position')?.value || '',
+                    notes: row.querySelector('td:nth-child(14) input')?.value || ''
+                }
+            };
+            
+            // Check for photo
+            const photoCell = row.querySelector('td:first-child');
+            if (photoCell.querySelector('img')) {
+                doorData.photo = photoCell.querySelector('img').src;
+            }
+            
+            doors.push(doorData);
+        });
+        
+        return doors;
+    }
+    
+    function getMotorizationData() {
+    try {
+        // Try to get the motorization row from the table
+        const motorizationTable = document.querySelector('table:nth-of-type(3)');
+        
+        // Check if the table exists
+        if (!motorizationTable) {
+            console.warn('Motorization table not found');
+            return { cordLength: '', motorPosition: '', notes: '' };
+        }
+        
+        // Find the row in the table body
+        const row = motorizationTable.querySelector('tbody tr');
+        
+        // Check if the row exists
+        if (!row) {
+            console.warn('Motorization row not found');
+            return { cordLength: '', motorPosition: '', notes: '' };
+        }
+        
+        // Get the inputs, with fallbacks if they don't exist
+        return {
+            cordLength: row.querySelector('td:nth-child(2) input')?.value || '',
+            motorPosition: row.querySelector('td:nth-child(3) input')?.value || '',
+            notes: row.querySelector('td:nth-child(4) input')?.value || ''
+        };
+    } catch (error) {
+        console.error('Error getting motorization data:', error);
+        // Return empty values if there's an error
+        return { cordLength: '', motorPosition: '', notes: '' };
+    }
+}
+    
+    function getSelectedWalls(row) {
+        const wallButtons = row.querySelectorAll('.wall-btn');
+        const selectedWalls = [];
+        
+        wallButtons.forEach(button => {
+            if (button.classList.contains('selected')) {
+                selectedWalls.push(button.textContent);
+            }
+        });
+        
+        return selectedWalls;
+    }
+    
+    // Print worksheet function
+    function printWorksheet() {
+        window.print();
+    }
+    
+    // Reset form function
+    function resetForm() {
+        if (confirm('Are you sure you want to reset the form? All data will be lost.')) {
+            localStorage.removeItem('blindMeasurements');
+            window.location.reload();
+        }
+    }
+    // Add these functions to your JavaScript
+
+// Function to view the saved data
+function viewSavedData() {
+    // Find all saved measurement worksheets in localStorage
+    const savedWorksheets = findAllSavedWorksheets();
+    
+    if (savedWorksheets.length === 0) {
+        alert('No saved measurements found in localStorage.');
+        return null;
+    }
+    
+    // Create the modal
+    const modal = document.createElement('div');
+    modal.className = 'measurement-modal';
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100%';
+    modal.style.height = '100%';
+    modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+    modal.style.zIndex = '1000';
+    modal.style.display = 'flex';
+    modal.style.justifyContent = 'center';
+    modal.style.alignItems = 'center';
+    
+    // Create the modal content
+    const modalContent = document.createElement('div');
+    modalContent.className = 'measurement-modal-content';
+    modalContent.style.backgroundColor = '#ffffff';
+    modalContent.style.padding = '20px';
+    modalContent.style.borderRadius = '5px';
+    modalContent.style.maxWidth = '90%';
+    modalContent.style.width = '900px';
+    modalContent.style.maxHeight = '90vh';
+    modalContent.style.overflowY = 'auto';
+    modalContent.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+    modalContent.style.color = '#333333'; // Ensuring text is dark
+    
+    // Add header with close button and selector
+    const header = document.createElement('div');
+    header.style.display = 'flex';
+    header.style.justifyContent = 'space-between';
+    header.style.alignItems = 'center';
+    header.style.marginBottom = '20px';
+    header.style.paddingBottom = '10px';
+    header.style.borderBottom = '2px solid #1e3d59'; // Using your blue color
+    
+    // Add title
+    const title = document.createElement('h2');
+    title.textContent = 'Measurement Details';
+    title.style.margin = '0';
+    title.style.color = '#1e3d59'; // Using your blue color
+    header.appendChild(title);
+    
+    // Create selector controls
+    const selectorControls = document.createElement('div');
+    selectorControls.style.display = 'flex';
+    selectorControls.style.alignItems = 'center';
+    selectorControls.style.gap = '10px';
+    
+    // Create worksheet selector
+    const worksheetLabel = document.createElement('label');
+    worksheetLabel.textContent = 'Select Job: ';
+    worksheetLabel.style.fontWeight = 'bold';
+    selectorControls.appendChild(worksheetLabel);
+    
+    const worksheetSelector = document.createElement('select');
+    worksheetSelector.style.padding = '8px 12px';
+    worksheetSelector.style.borderRadius = '4px';
+    worksheetSelector.style.border = '1px solid #ccc';
+    worksheetSelector.style.minWidth = '200px';
+    
+    // Populate selector with options
+    savedWorksheets.forEach((worksheetInfo, index) => {
+        const option = document.createElement('option');
+        option.value = worksheetInfo.key;
+        
+        // Create a meaningful label from the data
+        let label = worksheetInfo.key;
+        try {
+            const data = JSON.parse(worksheetInfo.data);
+            if (data.customerInfo && data.customerInfo.name) {
+                label = data.customerInfo.name;
+                if (data.customerInfo.address) {
+                    label += ` - ${data.customerInfo.address}`;
+                }
+                if (data.lastSaved) {
+                    label += ` (${new Date(data.lastSaved).toLocaleDateString()})`;
+                }
+            }
+        } catch (e) {
+            console.error('Error parsing worksheet data:', e);
+        }
+        
+        option.textContent = label;
+        worksheetSelector.appendChild(option);
+    });
+    
+    selectorControls.appendChild(worksheetSelector);
+    
+    // Add close button
+    const closeButton = document.createElement('button');
+    closeButton.textContent = '× Close';
+    closeButton.style.backgroundColor = '#f0f0f0';
+    closeButton.style.border = 'none';
+    closeButton.style.padding = '8px 12px';
+    closeButton.style.borderRadius = '4px';
+    closeButton.style.cursor = 'pointer';
+    closeButton.style.color = '#333';
+    closeButton.style.fontWeight = 'bold';
+    closeButton.onclick = function() {
+        document.body.removeChild(modal);
+    };
+    selectorControls.appendChild(closeButton);
+    
+    header.appendChild(selectorControls);
+    modalContent.appendChild(header);
+    
+    // Create a container for the worksheet content (will be updated when selection changes)
+    const worksheetContent = document.createElement('div');
+    worksheetContent.id = 'worksheetContent';
+    modalContent.appendChild(worksheetContent);
+    
+    // Add the modal to the page
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+    
+    // Function to load and display a worksheet
+    function displayWorksheet(key) {
+        // Get the data for the selected worksheet
+        const savedData = localStorage.getItem(key);
+        if (!savedData) {
+            worksheetContent.innerHTML = '<p>Error: Unable to load the selected worksheet.</p>';
+            return;
+        }
+        
+        let data;
+        try {
+            data = JSON.parse(savedData);
+        } catch (e) {
+            worksheetContent.innerHTML = '<p>Error: The selected worksheet contains invalid data.</p>';
+            return;
+        }
+        
+        console.log('Displaying measurements:', data);
+        
+        // Clear previous content
+        worksheetContent.innerHTML = '';
+        
+        // This is the section that needs to be modified in the displayWorksheet function:
+
+        // Add customer information section
+        if (data.customerInfo) {
+            const customerSection = document.createElement('div');
+            customerSection.style.marginBottom = '30px';
+            
+            const customerTitle = document.createElement('h3');
+            customerTitle.textContent = 'Customer Information';
+            customerTitle.style.marginBottom = '10px';
+            customerTitle.style.color = '#1e3d59';
+            customerTitle.style.paddingBottom = '5px';
+            customerTitle.style.borderBottom = '1px solid #ddd';
+            customerSection.appendChild(customerTitle);
+            
+            const customerTable = document.createElement('table');
+            customerTable.style.width = '100%';
+            customerTable.style.borderCollapse = 'collapse';
+            customerTable.style.border = '1px solid #ddd';
+            
+            // Add customer details
+            const customerInfo = data.customerInfo;
+            const customerRows = [
+                ['Name', customerInfo.name || 'N/A'],
+                ['Address', customerInfo.address || 'N/A'],
+                ['City/State/Zip', `${customerInfo.city || 'N/A'}, ${customerInfo.state || ''} ${customerInfo.zip || ''}`],
+                ['Phone', customerInfo.phone || 'N/A'],
+                ['Date', customerInfo.date || 'N/A']
+            ];
+            
+            customerRows.forEach((row, index) => {
+                const tr = document.createElement('tr');
+                tr.style.backgroundColor = index % 2 === 0 ? '#ffffff' : '#f9f9f9'; // Alternating row colors
+                
+                const th = document.createElement('th');
+                th.textContent = row[0];
+                th.style.textAlign = 'left';
+                th.style.padding = '10px';
+                th.style.backgroundColor = '#3d5a80'; // Dark blue header to match other tables
+                th.style.color = 'white'; // White text for better contrast
+                th.style.width = '150px';
+                th.style.borderBottom = '1px solid #ddd';
+                tr.appendChild(th);
+                
+                const td = document.createElement('td');
+                td.textContent = row[1];
+                td.style.padding = '10px';
+                td.style.borderBottom = '1px solid #ddd';
+                tr.appendChild(td);
+                
+                customerTable.appendChild(tr);
+            });
+            
+            customerSection.appendChild(customerTable);
+            worksheetContent.appendChild(customerSection);
+        }
+        
+        // Add windows section
+        if (data.windows && data.windows.length > 0) {
+            const windowsSection = document.createElement('div');
+            windowsSection.style.marginBottom = '30px';
+            
+            const windowsTitle = document.createElement('h3');
+            windowsTitle.textContent = `Windows (${data.windows.length})`;
+            windowsTitle.style.marginBottom = '10px';
+            windowsTitle.style.color = '#1e3d59';
+            windowsTitle.style.paddingBottom = '5px';
+            windowsTitle.style.borderBottom = '1px solid #ddd';
+            windowsSection.appendChild(windowsTitle);
+            
+            const windowsTable = document.createElement('table');
+            windowsTable.style.width = '100%';
+            windowsTable.style.borderCollapse = 'collapse';
+            windowsTable.style.marginBottom = '10px';
+            windowsTable.style.border = '1px solid #ddd';
+            
+            // Create header row
+            const headerRow = document.createElement('tr');
+            
+            const headers = ['Window #', 'Room', 'Type', 'Top', 'Middle', 'Bottom', 'Height', 'Width L/R'];
+            headers.forEach(headerText => {
+                const th = document.createElement('th');
+                th.textContent = headerText;
+                th.style.textAlign = 'left';
+                th.style.padding = '10px';
+                th.style.backgroundColor = '#3d5a80'; // Dark blue header
+                th.style.color = 'white';
+                th.style.borderBottom = '1px solid #ddd';
+                headerRow.appendChild(th);
+            });
+            
+            windowsTable.appendChild(headerRow);
+            
+            // Add window rows
+            data.windows.forEach((window, index) => {
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = '1px solid #eee';
+                tr.style.backgroundColor = index % 2 === 0 ? '#ffffff' : '#f9f9f9'; // Alternating row colors
+                
+                const columns = [
+                    window.number || '',
+                    window.room || '',
+                    window.windowType || 'Standard',
+                    window.measurements?.top || '',
+                    window.measurements?.middle || '',
+                    window.measurements?.bottom || '',
+                    window.measurements?.height || '',
+                    window.measurements?.left ? `L: ${window.measurements.left}, R: ${window.measurements.right}` : ''
+                ];
+                
+                columns.forEach(columnText => {
+                    const td = document.createElement('td');
+                    td.textContent = columnText;
+                    td.style.padding = '10px';
+                    td.style.borderBottom = '1px solid #ddd';
+                    tr.appendChild(td);
+                });
+                
+                windowsTable.appendChild(tr);
+            });
+            
+            windowsSection.appendChild(windowsTable);
+            worksheetContent.appendChild(windowsSection);
+        }
+        
+        // Add doors section
+        if (data.doors && data.doors.length > 0) {
+            const doorsSection = document.createElement('div');
+            doorsSection.style.marginBottom = '30px';
+            
+            const doorsTitle = document.createElement('h3');
+            doorsTitle.textContent = `Doors (${data.doors.length})`;
+            doorsTitle.style.marginBottom = '10px';
+            doorsTitle.style.color = '#1e3d59';
+            doorsTitle.style.paddingBottom = '5px';
+            doorsTitle.style.borderBottom = '1px solid #ddd';
+            doorsSection.appendChild(doorsTitle);
+            
+            const doorsTable = document.createElement('table');
+            doorsTable.style.width = '100%';
+            doorsTable.style.borderCollapse = 'collapse';
+            doorsTable.style.marginBottom = '10px';
+            doorsTable.style.border = '1px solid #ddd';
+            
+            // Create header row
+            const headerRow = document.createElement('tr');
+            
+            const headers = ['Door #', 'Room', 'Type', 'Glass Width', 'Door Length', 'Opens', 'Notes'];
+            headers.forEach(headerText => {
+                const th = document.createElement('th');
+                th.textContent = headerText;
+                th.style.textAlign = 'left';
+                th.style.padding = '10px';
+                th.style.backgroundColor = '#3d5a80'; // Dark blue header
+                th.style.color = 'white';
+                th.style.borderBottom = '1px solid #ddd';
+                headerRow.appendChild(th);
+            });
+            
+            doorsTable.appendChild(headerRow);
+            
+            // Add door rows
+            data.doors.forEach((door, index) => {
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = '1px solid #eee';
+                tr.style.backgroundColor = index % 2 === 0 ? '#ffffff' : '#f9f9f9'; // Alternating row colors
+                
+                const columns = [
+                    door.number || '',
+                    door.room || '',
+                    door.doorType || 'Standard',
+                    door.measurements?.glassWidth || '',
+                    door.measurements?.doorLength || '',
+                    door.measurements?.opens || '',
+                    door.measurements?.notes || ''
+                ];
+                
+                columns.forEach(columnText => {
+                    const td = document.createElement('td');
+                    td.textContent = columnText;
+                    td.style.padding = '10px';
+                    td.style.borderBottom = '1px solid #ddd';
+                    tr.appendChild(td);
+                });
+                
+                doorsTable.appendChild(tr);
+            });
+            
+            doorsSection.appendChild(doorsTable);
+            worksheetContent.appendChild(doorsSection);
+        }
+        
+        // Add motorization section
+        if (data.motorization) {
+            const motorSection = document.createElement('div');
+            motorSection.style.marginBottom = '30px';
+            
+            const motorTitle = document.createElement('h3');
+            motorTitle.textContent = 'Motorization Details';
+            motorTitle.style.marginBottom = '10px';
+            motorTitle.style.color = '#1e3d59';
+            motorTitle.style.paddingBottom = '5px';
+            motorTitle.style.borderBottom = '1px solid #ddd';
+            motorSection.appendChild(motorTitle);
+            
+            const motorTable = document.createElement('table');
+            motorTable.style.width = '100%';
+            motorTable.style.borderCollapse = 'collapse';
+            motorTable.style.border = '1px solid #ddd';
+            
+            // Add header row
+            const headerRow = document.createElement('tr');
+            ['Setting', 'Value'].forEach(headerText => {
+                const th = document.createElement('th');
+                th.textContent = headerText;
+                th.style.textAlign = 'left';
+                th.style.padding = '10px';
+                th.style.backgroundColor = '#3d5a80';
+                th.style.color = 'white';
+                th.style.borderBottom = '1px solid #ddd';
+                headerRow.appendChild(th);
+            });
+            motorTable.appendChild(headerRow);
+            
+            // Add rows
+            [
+                ['Cord Length', data.motorization.cordLength || 'N/A'],
+                ['Motor Position', data.motorization.motorPosition || 'N/A'],
+                ['Notes', data.motorization.notes || 'N/A']
+            ].forEach((row, index) => {
+                const tr = document.createElement('tr');
+                tr.style.backgroundColor = index % 2 === 0 ? '#ffffff' : '#f9f9f9';
+                
+                const th = document.createElement('th');
+                th.textContent = row[0];
+                th.style.textAlign = 'left';
+                th.style.padding = '10px';
+                th.style.width = '150px';
+                th.style.borderBottom = '1px solid #ddd';
+                tr.appendChild(th);
+                
+                const td = document.createElement('td');
+                td.textContent = row[1];
+                td.style.padding = '10px';
+                td.style.borderBottom = '1px solid #ddd';
+                tr.appendChild(td);
+                
+                motorTable.appendChild(tr);
+            });
+            
+            motorSection.appendChild(motorTable);
+            worksheetContent.appendChild(motorSection);
+        }
+        
+        // Add notes section
+        if (data.notes) {
+            const notesSection = document.createElement('div');
+            notesSection.style.marginBottom = '30px';
+            
+            const notesTitle = document.createElement('h3');
+            notesTitle.textContent = 'Notes';
+            notesTitle.style.marginBottom = '10px';
+            notesTitle.style.color = '#1e3d59';
+            notesTitle.style.paddingBottom = '5px';
+            notesTitle.style.borderBottom = '1px solid #ddd';
+            notesSection.appendChild(notesTitle);
+            
+            const notesContent = document.createElement('div');
+            notesContent.style.padding = '15px';
+            notesContent.style.backgroundColor = '#f9f9f9';
+            notesContent.style.border = '1px solid #ddd';
+            notesContent.style.borderRadius = '4px';
+            notesContent.style.whiteSpace = 'pre-wrap'; // Preserve line breaks
+            notesContent.textContent = data.notes;
+            notesSection.appendChild(notesContent);
+            
+            worksheetContent.appendChild(notesSection);
+        }
+        
+        // Add last saved info
+        if (data.lastSaved) {
+            const savedInfo = document.createElement('div');
+            savedInfo.style.marginTop = '20px';
+            savedInfo.style.fontSize = '12px';
+            savedInfo.style.color = '#666';
+            savedInfo.style.borderTop = '1px solid #eee';
+            savedInfo.style.paddingTop = '10px';
+            savedInfo.style.textAlign = 'right';
+            savedInfo.textContent = `Last saved: ${new Date(data.lastSaved).toLocaleString()}`;
+            worksheetContent.appendChild(savedInfo);
+        }
+        
+        // Add buttons at the bottom
+        const buttonRow = document.createElement('div');
+        buttonRow.style.marginTop = '20px';
+        buttonRow.style.display = 'flex';
+        buttonRow.style.justifyContent = 'flex-end';
+        buttonRow.style.gap = '10px';
+        
+        // Print button
+        const printButton = document.createElement('button');
+        printButton.innerHTML = '🖨️ Print';
+        printButton.style.padding = '10px 16px';
+        printButton.style.backgroundColor = '#3d5a80';
+        printButton.style.color = 'white';
+        printButton.style.border = 'none';
+        printButton.style.borderRadius = '4px';
+        printButton.style.cursor = 'pointer';
+        printButton.onclick = function() {
+            printWorksheet(data, key);
+        };
+        buttonRow.appendChild(printButton);
+        
+        // Export as JSON button
+        const jsonButton = document.createElement('button');
+        jsonButton.innerHTML = '💾 Download JSON';
+        jsonButton.style.padding = '10px 16px';
+        jsonButton.style.backgroundColor = '#bc9355';
+        jsonButton.style.color = 'white';
+        jsonButton.style.border = 'none';
+        jsonButton.style.borderRadius = '4px';
+        jsonButton.style.cursor = 'pointer';
+        jsonButton.onclick = function() {
+            downloadWorksheetAsJSON(key);
+        };
+        buttonRow.appendChild(jsonButton);
+        
+        // Email button
+        const emailButton = document.createElement('button');
+        emailButton.innerHTML = '📧 Email';
+        emailButton.style.padding = '10px 16px';
+        emailButton.style.backgroundColor = '#4e9a06';
+        emailButton.style.color = 'white';
+        emailButton.style.border = 'none';
+        emailButton.style.borderRadius = '4px';
+        emailButton.style.cursor = 'pointer';
+        emailButton.onclick = function() {
+            emailWorksheet(data, key);
+        };
+        buttonRow.appendChild(emailButton);
+        
+        worksheetContent.appendChild(buttonRow);
+    }
+    
+    // Function to print a worksheet
+    function printWorksheet(data, key) {
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write('<html><head><title>Measurement Details</title>');
+        printWindow.document.write(`
+            <style>
+                body { 
+                    font-family: Arial, sans-serif; 
+                    padding: 20px; 
+                    color: #333;
+                }
+                table { 
+                    width: 100%; 
+                    border-collapse: collapse; 
+                    margin-bottom: 20px; 
+                    border: 1px solid #ddd;
+                }
+                th, td { 
+                    padding: 10px; 
+                    text-align: left; 
+                    border-bottom: 1px solid #ddd; 
+                }
+                th { 
+                    background-color: #3d5a80; 
+                    color: white;
+                }
+                tr:nth-child(even) {
+                    background-color: #f9f9f9;
+                }
+                h2 { 
+                    color: #1e3d59;
+                    margin-top: 0; 
+                    border-bottom: 2px solid #1e3d59; 
+                    padding-bottom: 10px; 
+                }
+                h3 { 
+                    color: #1e3d59;
+                    margin: 20px 0 10px 0; 
+                    border-bottom: 1px solid #ddd;
+                    padding-bottom: 5px;
+                }
+                .notes {
+                    padding: 15px;
+                    background-color: #f9f9f9;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                    white-space: pre-wrap;
+                }
+                .footer {
+                    margin-top: 30px;
+                    font-size: 12px;
+                    color: #666;
+                    text-align: center;
+                    border-top: 1px solid #eee;
+                    padding-top: 10px;
+                }
+                @media print {
+                    body { 
+                        padding: 0;
+                        font-size: 12pt;
+                    }
+                    table { page-break-inside: avoid; }
+                    tr { page-break-inside: avoid; }
+                    h2, h3 { page-break-after: avoid; }
+                }
+            </style>
+        `);
+        printWindow.document.write('</head><body>');
+        
+        // Add title and customer info
+        printWindow.document.write(`<h2>Measurement Details</h2>`);
+        
+        if (data.customerInfo) {
+            printWindow.document.write(`<h3>Customer Information</h3>`);
+            printWindow.document.write(`<table>`);
+            [
+                ['Name', data.customerInfo.name || 'N/A'],
+                ['Address', data.customerInfo.address || 'N/A'],
+                ['City/State/Zip', `${data.customerInfo.city || 'N/A'}, ${data.customerInfo.state || ''} ${data.customerInfo.zip || ''}`],
+                ['Phone', data.customerInfo.phone || 'N/A'],
+                ['Date', data.customerInfo.date || 'N/A']
+            ].forEach(row => {
+                printWindow.document.write(`
+                    <tr>
+                        <th style="width:150px;">${row[0]}</th>
+                        <td>${row[1]}</td>
+                    </tr>
+                `);
+            });
+            printWindow.document.write(`</table>`);
+        }
+        
+        // Add windows
+        if (data.windows && data.windows.length > 0) {
+            printWindow.document.write(`<h3>Windows (${data.windows.length})</h3>`);
+            printWindow.document.write(`
+                <table>
+                    <tr>
+                        <th>Window #</th>
+                        <th>Room</th>
+                        <th>Type</th>
+                        <th>Top</th>
+                        <th>Middle</th>
+                        <th>Bottom</th>
+                        <th>Height</th>
+                        <th>Width L/R</th>
+                    </tr>
+            `);
+            
+            data.windows.forEach(window => {
+                printWindow.document.write(`
+                    <tr>
+                        <td>${window.number || ''}</td>
+                        <td>${window.room || ''}</td>
+                        <td>${window.windowType || 'Standard'}</td>
+                        <td>${window.measurements?.top || ''}</td>
+                        <td>${window.measurements?.middle || ''}</td>
+                        <td>${window.measurements?.bottom || ''}</td>
+                        <td>${window.measurements?.height || ''}</td>
+                        <td>${window.measurements?.left ? `L: ${window.measurements.left}, R: ${window.measurements.right}` : ''}</td>
+                    </tr>
+                `);
+            });
+            
+            printWindow.document.write(`</table>`);
+        }
+        
+        // Add doors
+        if (data.doors && data.doors.length > 0) {
+            printWindow.document.write(`<h3>Doors (${data.doors.length})</h3>`);
+            printWindow.document.write(`
+                <table>
+                    <tr>
+                        <th>Door #</th>
+                        <th>Room</th>
+                        <th>Type</th>
+                        <th>Glass Width</th>
+                        <th>Door Length</th>
+                        <th>Opens</th>
+                        <th>Notes</th>
+                    </tr>
+            `);
+            
+            data.doors.forEach(door => {
+                printWindow.document.write(`
+                    <tr>
+                        <td>${door.number || ''}</td>
+                        <td>${door.room || ''}</td>
+                        <td>${door.doorType || 'Standard'}</td>
+                        <td>${door.measurements?.glassWidth || ''}</td>
+                        <td>${door.measurements?.doorLength || ''}</td>
+                        <td>${door.measurements?.opens || ''}</td>
+                        <td>${door.measurements?.notes || ''}</td>
+                    </tr>
+                `);
+            });
+            
+            printWindow.document.write(`</table>`);
+        }
+        
+        // Add motorization
+        if (data.motorization) {
+            printWindow.document.write(`<h3>Motorization Details</h3>`);
+            printWindow.document.write(`
+                <table>
+                    <tr>
+                        <th style="width:150px;">Setting</th>
+                        <th>Value</th>
+                    </tr>
+                    <tr>
+                        <th>Cord Length</th>
+                        <td>${data.motorization.cordLength || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <th>Motor Position</th>
+                        <td>${data.motorization.motorPosition || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <th>Notes</th>
+                        <td>${data.motorization.notes || 'N/A'}</td>
+                    </tr>
+                </table>
+            `);
+        }
+        
+        // Add notes
+        if (data.notes) {
+            printWindow.document.write(`<h3>Notes</h3>`);
+            printWindow.document.write(`<div class="notes">${data.notes}</div>`);
+        }
+        
+        // Add footer
+        printWindow.document.write(`
+            <div class="footer">
+                Measurement Worksheet - ${data.customerInfo?.name || 'Unnamed Customer'}<br>
+                ${data.lastSaved ? `Last saved: ${new Date(data.lastSaved).toLocaleString()}` : ''}
+            </div>
+        `);
+        
+        printWindow.document.write('</body></html>');
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => {
+            printWindow.print();
+        }, 500);
+    }
+    
+    // Function to email a worksheet
+    function emailWorksheet(data, key) {
+        let formattedData = "MEASUREMENT DATA SUMMARY\n\n";
+        
+        // Add customer info
+        if (data.customerInfo) {
+            formattedData += "CUSTOMER INFORMATION:\n";
+            formattedData += `Name: ${data.customerInfo.name || 'N/A'}\n`;
+            formattedData += `Address: ${data.customerInfo.address || 'N/A'}\n`;
+            formattedData += `City: ${data.customerInfo.city || 'N/A'}, ${data.customerInfo.state || ''} ${data.customerInfo.zip || ''}\n`;
+            formattedData += `Phone: ${data.customerInfo.phone || 'N/A'}\n`;
+            formattedData += `Date: ${data.customerInfo.date || 'N/A'}\n\n`;
+        }
+        
+        // Add windows info
+        if (data.windows && data.windows.length > 0) {
+            formattedData += `WINDOWS (${data.windows.length}):\n`;
+            data.windows.forEach((window, index) => {
+                formattedData += `Window #${window.number}: ${window.room || 'Unnamed Room'} - `;
+                formattedData += `${window.windowType || 'Standard'}\n`;
+                formattedData += `  Measurements: Top=${window.measurements?.top || 'N/A'}, `;
+                formattedData += `Middle=${window.measurements?.middle || 'N/A'}, `;
+                formattedData += `Bottom=${window.measurements?.bottom || 'N/A'}, `;
+                formattedData += `Height=${window.measurements?.height || 'N/A'}\n`;
+            });
+            formattedData += "\n";
+        }
+        
+        // Add doors info
+        if (data.doors && data.doors.length > 0) {
+            formattedData += `DOORS (${data.doors.length}):\n`;
+            data.doors.forEach((door, index) => {
+                formattedData += `Door #${door.number}: ${door.room || 'Unnamed Room'} - `;
+                formattedData += `${door.doorType || 'Standard'}\n`;
+                formattedData += `  Glass Width=${door.measurements?.glassWidth || 'N/A'}, `;
+                formattedData += `Door Length=${door.measurements?.doorLength || 'N/A'}\n`;
+            });
+            formattedData += "\n";
+        }
+        
+        // Add motorization info
+        if (data.motorization) {
+            formattedData += "MOTORIZATION:\n";
+            formattedData += `Cord Length: ${data.motorization.cordLength || 'N/A'}\n`;
+            formattedData += `Motor Position: ${data.motorization.motorPosition || 'N/A'}\n`;
+            formattedData += `Notes: ${data.motorization.notes || 'N/A'}\n\n`;
+        }
+        
+        // Add general notes
+        if (data.notes) {
+            formattedData += "NOTES:\n";
+            formattedData += data.notes + "\n\n";
+        }
+        
+        // Add last saved time
+        if (data.lastSaved) {
+            formattedData += `Last saved: ${new Date(data.lastSaved).toLocaleString()}`;
+        }
+        
+        // Create email subject
+        const customerName = data.customerInfo?.name || "Unnamed Customer";
+        const subject = `Blinds Measurement Data - ${customerName}`;
+        
+        // Create mailto link
+        const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(formattedData)}`;
+        
+        // Open default email client
+        window.open(mailtoLink);
+    }
+    
+    // Function to download a worksheet as JSON
+    function downloadWorksheetAsJSON(key) {
+        const savedData = localStorage.getItem(key);
+        if (!savedData) {
+            alert('Error: Unable to load the selected worksheet.');
+            return;
+        }
+        
+        try {
+            // Parse the data to format it nicely in the file
+            const data = JSON.parse(savedData);
+            
+            // Create a blob with the data
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            
+            // Create a download link
+            const a = document.createElement('a');
+            const customerName = data.customerInfo?.name || "unnamed_customer";
+            const date = new Date().toISOString().slice(0, 10);
+            
+            // Set download filename with customer name and date
+            a.download = `blinds_measurement_${customerName.replace(/\s+/g, '_')}_${date}.json`;
+            a.href = window.URL.createObjectURL(blob);
+            
+            // Trigger download
+            document.body.appendChild(a);
+            a.click();
+            
+            // Clean up
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(a.href);
+        } catch (e) {
+            console.error('Error downloading worksheet:', e);
+            alert('Error: Unable to download the worksheet.');
+        }
+    }
+    
+    // Display the first worksheet initially
+    if (savedWorksheets.length > 0) {
+        displayWorksheet(savedWorksheets[0].key);
+    }
+    
+    // Add change event to selector to load different worksheets
+    worksheetSelector.addEventListener('change', function() {
+        displayWorksheet(this.value);
+    });
+    
+    // Save the formatted data from the currently selected worksheet for use by other functions
+    return "Data viewer opened with all saved worksheets.";
+}
+
+// Helper function to find all saved worksheets in localStorage
+function findAllSavedWorksheets() {
+    const worksheets = [];
+    
+    // Check for direct blindMeasurements key
+    if (localStorage.getItem('blindMeasurements')) {
+        worksheets.push({
+            key: 'blindMeasurements',
+            data: localStorage.getItem('blindMeasurements')
+        });
+    }
+    
+    // Check for any keys that might contain measurement data
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key === 'blindMeasurements') continue; // Already added
+        
+        // Check if the key might contain measurement data
+        if (key.includes('measurement') || key.includes('blind') || key.includes('window')) {
+            const data = localStorage.getItem(key);
+            try {
+                // Quick validation - check if it has the expected structure
+                const parsed = JSON.parse(data);
+                if (parsed.customerInfo || parsed.windows || parsed.doors) {
+                    worksheets.push({ key, data });
+                }
+            } catch (e) {
+                // Not valid JSON, skip
+                console.log(`Skipping key ${key}: not valid measurement data`);
+            }
+        }
+    }
+    
+    return worksheets;
+}
+// Function to prepare and send data via email
+function exportDataByEmail() {
+    const formattedData = viewSavedData();
+    if (!formattedData) return;
+    
+    // Get the saved data as JSON for attachment
+    const savedData = localStorage.getItem('blindMeasurements');
+    const data = JSON.parse(savedData);
+    
+    // Create customer name for subject line
+    const customerName = data.customerInfo?.name || "Unnamed Customer";
+    
+    // Create email subject
+    const subject = `Blinds Measurement Data - ${customerName}`;
+    
+    // Create email body with summary
+    const emailBody = formattedData;
+    
+    // Create mailto link
+    const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
+    
+    // Open default email client
+    window.open(mailtoLink);
+}
+
+    // Create a function to download data as JSON file
+    function downloadMeasurementData() {
+        const savedData = localStorage.getItem('blindMeasurements');
+        if (!savedData) {
+            alert('No saved measurements found in localStorage.');
+            return;
+        }
+        
+        // Parse the data to format it nicely in the file
+        const data = JSON.parse(savedData);
+        
+        // Create a blob with the data
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        
+        // Create a download link
+        const a = document.createElement('a');
+        const customerName = data.customerInfo?.name || "unnamed_customer";
+        const date = new Date().toISOString().slice(0, 10);
+        
+        // Set download filename with customer name and date
+        a.download = `blinds_measurement_${customerName.replace(/\s+/g, '_')}_${date}.json`;
+        a.href = window.URL.createObjectURL(blob);
+        
+        // Trigger download
+        document.body.appendChild(a);
+        a.click();
+        
+        // Clean up
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(a.href);
+    }
+    
+    // Handle the case where the script is loaded in an iframe
+    function setupIframeMode() {
+        if (window.location !== window.parent.location) {
+            // Add event listener for messages from parent window
+            window.addEventListener('message', function(event) {
+                // Handle messages from parent
+                if (event.data && event.data.type) {
+                    switch(event.data.type) {
+                        case 'print':
+                            printWorksheet();
+                            break;
+                        case 'save':
+                            saveMeasurements();
+                            break;
+                        case 'reset':
+                            resetForm();
+                            break;
+                    }
+                }
+            });
+            
+            // Notify parent that we're ready
+            try {
+                window.parent.postMessage({
+                    type: 'measurementFormReady'
+                }, '*');
+            } catch (e) {
+                console.error('Could not notify parent window:', e);
+            }
+        }
+    }
+    
+    // Create an exportable object with measurement data - useful for integration
+    function getMeasurementData() {
+        return {
+            customerInfo: {
+                address: document.getElementById('customerAddress').value,
+                name: document.getElementById('customerName').value,
+                phone: document.getElementById('customerPhone').value,
+                city: document.getElementById('customerCity').value,
+                state: document.getElementById('customerState').value,
+                zip: document.getElementById('customerZip').value,
+                date: document.getElementById('measurementDate').value
+            },
+            windows: getWindowData(),
+            multipane: getMultipaneData(),
+            doors: getDoorData(),
+            motorization: getMotorizationData(),
+            notes: document.querySelector('.notes-area').value
+        };
+    }function loadMeasurements() {
+        const savedData = localStorage.getItem('blindMeasurements');
+        if (!savedData) return;
+        
+        try {
+            const measurementData = JSON.parse(savedData);
+            
+            // Load customer info
+            const customerInfo = measurementData.customerInfo;
+            if (customerInfo) {
+                document.getElementById('customerAddress').value = customerInfo.address || '';
+                document.getElementById('customerName').value = customerInfo.name || '';
+                document.getElementById('customerPhone').value = customerInfo.phone || '';
+                document.getElementById('customerCity').value = customerInfo.city || '';
+                document.getElementById('customerState').value = customerInfo.state || '';
+                document.getElementById('customerZip').value = customerInfo.zip || '';
+                document.getElementById('measurementDate').value = customerInfo.date || '';
+            }
+            
+            // Load windows
+            if (measurementData.windows && measurementData.windows.length > 0) {
+                // Clear existing windows
+                document.getElementById('windowsTableBody').innerHTML = '';
+                
+                // Add windows
+                measurementData.windows.forEach(() => addWindow());
+                
+                // Fill in window data
+                const windowRows = document.querySelectorAll('#windowsTableBody .window-row');
+                measurementData.windows.forEach((windowData, index) => {
+                    if (index < windowRows.length) {
+                        const row = windowRows[index];
+                        
+                        // Set values
+                        row.querySelector('td:nth-child(4) input').value = windowData.room || '';
+                        row.querySelector('.window-type-select').value = windowData.windowType || '';
+                        row.querySelector('.wall-type-select').value = windowData.wallType || 'none';
+                        
+                        // Select wall buttons
+                        if (windowData.walls && windowData.walls.length > 0) {
+                            const wallButtons = row.querySelectorAll('.wall-btn');
+                            wallButtons.forEach(button => {
+                                if (windowData.walls.includes(button.textContent)) {
+                                    button.classList.add('selected');
+                                }
+                            });
+                        }
+                        
+                        // Set measurements
+                        const measurements = windowData.measurements || {};
+                        row.querySelector('td:nth-child(5) input').value = measurements.top || '';
+                        row.querySelector('td:nth-child(6) input').value = measurements.middle || '';
+                        row.querySelector('td:nth-child(7) input').value = measurements.bottom || '';
+                        row.querySelector('td:nth-child(8) input').value = measurements.height || '';
+                        row.querySelector('td:nth-child(9) input').value = measurements.depth || '';
+                        row.querySelector('td:nth-child(10) input').value = measurements.left || '';
+                        row.querySelector('td:nth-child(11) input').value = measurements.right || '';
+                        row.querySelector('td:nth-child(12) input').value = measurements.trimToTrim || '';
+                        row.querySelector('td:nth-child(13) input').value = measurements.topTrimToOpening || '';
+                        row.querySelector('td:nth-child(14) input').value = measurements.topToBottom || '';
+                        row.querySelector('td:nth-child(15) input').value = measurements.topToFloor || '';
+                        row.querySelector('td:nth-child(16) input').value = measurements.floorToCrown || '';
+                        row.querySelector('td:nth-child(17) input').value = measurements.ceilingToFloor || '';
+                        
+                        // Set photo if exists
+                        if (windowData.photo) {
+                            const photoCell = row.querySelector('td:first-child');
+                            const img = document.createElement('img');
+                            img.src = windowData.photo;
+                            img.style.width = '60px';
+                            img.style.height = '40px';
+                            img.style.objectFit = 'cover';
+                            img.style.cursor = 'pointer';
+                            
+                            photoCell.innerHTML = '';
+                            photoCell.appendChild(img);
+                            
+                            img.addEventListener('click', function() {
+                                photoCell.innerHTML = '<button class="btn-secondary btn-sm" onclick="addWindowPhoto(this)">Add</button>';
+                            });
+                        }
+                        
+                        // Handle multilevel settings
+                        if (windowData.wallType === 'multilevel' && windowData.multilevel) {
+                            const multilevelRow = document.getElementById(`multilevel-${index + 1}`);
+                            if (multilevelRow) {
+                                multilevelRow.style.display = 'table-row';
+                                
+                                multilevelRow.querySelector('td:nth-child(5) input').value = 
+                                    windowData.multilevel.top || '';
+                                multilevelRow.querySelector('td:nth-child(6) input').value = 
+                                    windowData.multilevel.middle || '';
+                                multilevelRow.querySelector('td:nth-child(7) input').value = 
+                                    windowData.multilevel.bottom || '';
+                            } else {
+                                // Create new multilevel row if it doesn't exist
+                                const newMultiLevelRow = createMultiLevelRow(index + 1);
+                                row.insertAdjacentElement('afterend', newMultiLevelRow);
+                                newMultiLevelRow.style.display = 'table-row';
+                                
+                                newMultiLevelRow.querySelector('td:nth-child(5) input').value = 
+                                    windowData.multilevel.top || '';
+                                newMultiLevelRow.querySelector('td:nth-child(6) input').value = 
+                                    windowData.multilevel.middle || '';
+                                newMultiLevelRow.querySelector('td:nth-child(7) input').value = 
+                                    windowData.multilevel.bottom || '';
+                            }
+                        }
+                    }
+                });
+            }// Load doors
+            if (measurementData.doors && measurementData.doors.length > 0) {
+                // Clear existing doors
+                document.getElementById('doorsTableBody').innerHTML = '';
+                
+                // Add doors
+                measurementData.doors.forEach(() => addDoor());
+                
+                // Fill in door data
+                const doorRows = document.querySelectorAll('#doorsTableBody tr');
+                measurementData.doors.forEach((doorData, index) => {
+                    if (index < doorRows.length) {
+                        const row = doorRows[index];
+                        
+                        // Set values
+                        row.querySelector('td:nth-child(4) input').value = doorData.room || '';
+                        if (row.querySelector('.door-type-select')) {
+                            row.querySelector('.door-type-select').value = doorData.doorType || '';
+                        }
+                        
+                        // Select wall buttons
+                        if (doorData.walls && doorData.walls.length > 0) {
+                            const wallButtons = row.querySelectorAll('.wall-btn');
+                            wallButtons.forEach(button => {
+                                if (doorData.walls.includes(button.textContent)) {
+                                    button.classList.add('selected');
+                                }
+                            });
+                        }
+                        
+                        // Set measurements
+                        const measurements = doorData.measurements || {};
+                        row.querySelector('td:nth-child(5) input').value = measurements.leftOfGlass || '';
+                        row.querySelector('td:nth-child(6) input').value = measurements.glassWidth || '';
+                        row.querySelector('td:nth-child(7) input').value = measurements.rightOfGlass || '';
+                        row.querySelector('td:nth-child(8) input').value = measurements.windowLength || '';
+                        row.querySelector('td:nth-child(9) input').value = measurements.doorLength || '';
+                        row.querySelector('td:nth-child(10) input').value = measurements.handleProjection || '';
+                        row.querySelector('td:nth-child(11) input').value = measurements.handleInset || '';
+                        
+                        if (row.querySelector('.opening-direction')) {
+                            row.querySelector('.opening-direction').value = measurements.opens || 'in';
+                        }
+                        if (row.querySelector('.handle-position')) {
+                            row.querySelector('.handle-position').value = measurements.handlePosition || 'left';
+                        }
+                        
+                        row.querySelector('td:nth-child(14) input').value = measurements.notes || '';
+                        
+                        // Set photo if exists
+                        if (doorData.photo) {
+                            const photoCell = row.querySelector('td:first-child');
+                            const img = document.createElement('img');
+                            img.src = doorData.photo;
+                            img.style.width = '60px';
+                            img.style.height = '40px';
+                            img.style.objectFit = 'cover';
+                            img.style.cursor = 'pointer';
+                            
+                            photoCell.innerHTML = '';
+                            photoCell.appendChild(img);
+                            
+                            img.addEventListener('click', function() {
+                                photoCell.innerHTML = '<button class="btn-secondary btn-sm" onclick="addDoorPhoto(this)">Add</button>';
+                            });
+                        }
+                    }
+                });
+            }
+            
+            // Load multipane data
+            if (measurementData.multipane && measurementData.multipane.length > 0) {
+                document.getElementById('showMultipaneToggle').checked = true;
+                toggleMultipaneSection();
+                
+                // Fill in multipane data
+                const multipaneRows = document.querySelectorAll('#multipaneTableBody tr');
+                measurementData.multipane.forEach((multipaneData, index) => {
+                    if (index < multipaneRows.length) {
+                        const row = multipaneRows[index];
+                        
+                        row.querySelector('.multipane-type').value = multipaneData.type || '2-pane';
+                        row.querySelector('td:nth-child(3) input').value = multipaneData.pane1Width || '';
+                        row.querySelector('td:nth-child(4) input').value = multipaneData.pane1Height || '';
+                        row.querySelector('td:nth-child(5) input').value = multipaneData.pane2Width || '';
+                        row.querySelector('td:nth-child(6) input').value = multipaneData.pane2Height || '';
+                        row.querySelector('td:nth-child(7) input').value = multipaneData.pane3Width || '';
+                        row.querySelector('td:nth-child(8) input').value = multipaneData.pane3Height || '';
+                        row.querySelector('td:nth-child(9) input').value = multipaneData.pane4Width || '';
+                        row.querySelector('td:nth-child(10) input').value = multipaneData.pane4Height || '';
+                        row.querySelector('td:nth-child(11) input').value = multipaneData.pane5Width || '';
+                        row.querySelector('td:nth-child(12) input').value = multipaneData.pane5Height || '';
+                        row.querySelector('td:nth-child(13) input').value = multipaneData.notes || '';
+                    }
+                });
+            }
+            
+            // Load motorization data
+            if (measurementData.motorization) {
+                const motorizationRow = document.querySelector('table:nth-of-type(3) tbody tr');
+                if (motorizationRow) {
+                    motorizationRow.querySelector('td:nth-child(2) input').value = 
+                        measurementData.motorization.cordLength || '';
+                    motorizationRow.querySelector('td:nth-child(3) input').value = 
+                        measurementData.motorization.motorPosition || '';
+                    motorizationRow.querySelector('td:nth-child(4) input').value = 
+                        measurementData.motorization.notes || '';
+                }
+            }
+            
+            // Load notes
+            if (measurementData.notes) {
+                document.querySelector('.notes-area').value = measurementData.notes;
+            }
+        } catch (error) {
+            console.error('Error loading saved measurements:', error);
+            alert('There was an error loading your saved measurements. The data might be corrupted.');
+        }
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+    // Initialize the form
+    initForm();
+    
+    // Add event listeners (your existing ones)
+    document.getElementById('addWindowBtn').addEventListener('click', addWindow);
+    document.getElementById('addDoorBtn').addEventListener('click', addDoor);
+    document.getElementById('showMultipaneToggle').addEventListener('change', toggleMultipaneSection);
+    document.getElementById('saveBtn').addEventListener('click', saveMeasurements);
+    document.getElementById('saveBtn2').addEventListener('click', saveMeasurements);
+    document.getElementById('printBtn').addEventListener('click', printWorksheet);
+    document.getElementById('printBtn2').addEventListener('click', printWorksheet);
+    document.getElementById('resetBtn').addEventListener('click', resetForm);
+    
+    // Check if we're in an iframe (your existing code)
+    if (window.location !== window.parent.location) {
+        document.body.classList.add('in-iframe');
+        document.querySelector('.header').classList.add('in-iframe');
+        setupIframeMode();
+    }
+    
+    // Set today's date as default (your existing code)
+    const today = new Date().toISOString().slice(0, 10);
+    document.getElementById('measurementDate').value = today;
+    
+    // Try to load saved measurements from localStorage (your existing code)
+    loadMeasurements();
+
+    // NEW CODE ADDED BELOW: Event listeners for export buttons
+    const viewDataBtn = document.getElementById('viewDataBtn');
+    if (viewDataBtn) {
+        viewDataBtn.addEventListener('click', viewSavedData);
+    }
+    
+    const emailDataBtn = document.getElementById('emailDataBtn');
+    if (emailDataBtn) {
+        emailDataBtn.addEventListener('click', exportDataByEmail);
+    }
+    
+    const downloadDataBtn = document.getElementById('downloadDataBtn');
+    if (downloadDataBtn) {
+        downloadDataBtn.addEventListener('click', downloadMeasurementData);
+    }
+
+    // Add a debug button
+    const debugBtn = document.createElement('button');
+    debugBtn.textContent = '🔍 Debug Storage';
+    debugBtn.className = 'btn-secondary';
+    debugBtn.style.backgroundColor = '#ff9900';
+    debugBtn.onclick = inspectLocalStorage;
+    
+    const footerActions = document.querySelector('.footer-actions');
+    if (footerActions) {
+        footerActions.appendChild(debugBtn);
+    }
+    
+    // Fix the save buttons
+    const saveBtn = document.getElementById('saveBtn');
+    if (saveBtn) {
+        const newSaveBtn = saveBtn.cloneNode(true);
+        saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
+        newSaveBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log("Save button clicked");
+            saveMeasurements();
+        });
+    }
+    
+    const saveBtn2 = document.getElementById('saveBtn2');
+    if (saveBtn2) {
+        const newSaveBtn2 = saveBtn2.cloneNode(true);
+        saveBtn2.parentNode.replaceChild(newSaveBtn2, saveBtn2);
+        newSaveBtn2.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log("Save button 2 clicked");
+            saveMeasurements();
+        });
+    }
+});
+  </script>
+</body>
+</html>

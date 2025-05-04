@@ -1,0 +1,163 @@
+const express = require('express');
+const router = express.Router();
+const multer = require('multer');
+const xlsx = require('xlsx');
+const fs = require('fs-extra');
+const path = require('path');
+
+// Configure multer for file uploads
+const upload = multer({
+    dest: 'uploads/',
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = [
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/vnd.ms-excel',
+            'text/csv'
+        ];
+        if (allowedTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Invalid file type. Please upload XLSX, XLS, or CSV file.'));
+        }
+    },
+    limits: {
+        fileSize: 5 * 1024 * 1024 // 5MB limit
+    }
+});
+
+// Path to inventory JSON file
+const inventoryPath = path.join(__dirname, '..', 'data', 'inventory.json');
+
+// Load inventory from JSON file
+async function loadInventory() {
+    try {
+        if (!await fs.pathExists(inventoryPath)) {
+            await fs.writeJson(inventoryPath, []);
+        }
+        const data = await fs.readFile(inventoryPath, 'utf8');
+        return JSON.parse(data);
+    } catch (err) {
+        console.log('Error loading inventory:', err.message);
+        return [];
+    }
+}
+
+// Save inventory to JSON file
+async function saveInventory(inventory) {
+    await fs.writeJson(inventoryPath, inventory, { spaces: 2 });
+}
+
+// Get current inventory
+router.get('/', async (req, res) => {
+    try {
+        const inventory = await loadInventory();
+        res.json(inventory);
+    } catch (err) {
+        res.status(500).json({ success: false, message: 'Failed to load inventory.' });
+    }
+});
+
+// Import sizes from file
+router.post('/import-sizes', upload.single('file'), async (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ success: false, message: 'No file uploaded' });
+    }
+
+    try {
+        const workbook = xlsx.readFile(req.file.path);
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        const data = xlsx.utils.sheet_to_json(worksheet);
+
+        // Load existing inventory to avoid duplicates
+        const existingInventory = await loadInventory();
+
+        // Process the data
+        const newInventoryItems = data.map(row => {
+            const width = parseFloat(row.Width || row['Window Width'] || row.width);
+            const length = parseFloat(row.Length || row['Window Length'] || row.length);
+            const quantity = parseInt(row.Quantity || row.quantity || 0, 10);
+
+            if (isNaN(width) || isNaN(length) || isNaN(quantity)) {
+                throw new Error('Invalid data format: Width, Length, and Quantity must be numbers');
+            }
+
+            // Check for duplicates in existing inventory
+            const duplicate = existingInventory.find(item => item.width === width && item.length === length);
+            if (duplicate) {
+                duplicate.quantity += quantity;
+                duplicate.lastUpdated = new Date().toISOString();
+                return null; // Skip adding duplicate
+            }
+
+            return {
+                id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
+                width,
+                length,
+                quantity,
+                lastUpdated: new Date().toISOString()
+            };
+        }).filter(item => item !== null); // Filter out duplicates
+
+        const updatedInventory = [...existingInventory, ...newInventoryItems];
+        await saveInventory(updatedInventory);
+        res.json({ success: true, inventory: updatedInventory });
+
+    } catch (err) {
+        res.status(500).json({ success: false, message: `Failed to import sizes: ${err.message}` });
+    } finally {
+        if (req.file) {
+            await fs.unlink(req.file.path).catch(console.error);
+        }
+    }
+});
+
+// Update inventory quantity
+router.post('/update-quantity', async (req, res) => {
+    try {
+        const { id, quantity } = req.body;
+        const inventory = await loadInventory();
+        
+        const item = inventory.find(i => i.id === id);
+        if (!item) {
+            return res.status(404).json({ success: false, message: 'Item not found' });
+        }
+
+        if (isNaN(quantity) || quantity < 0) {
+            return res.status(400).json({ success: false, message: 'Quantity must be a positive number' });
+        }
+
+        item.quantity = parseInt(quantity);
+        item.lastUpdated = new Date().toISOString();
+        
+        await saveInventory(inventory);
+        res.json({ success: true, item });
+
+    } catch (err) {
+        res.status(500).json({ success: false, message: 'Failed to update quantity.' });
+    }
+});
+
+// Batch update inventory
+router.post('/batch-update', async (req, res) => {
+    try {
+        const { updates } = req.body;
+        const inventory = await loadInventory();
+
+        updates.forEach(update => {
+            const item = inventory.find(i => i.id === update.id);
+            if (item && !isNaN(update.quantity) && update.quantity >= 0) {
+                item.quantity = parseInt(update.quantity);
+                item.lastUpdated = new Date().toISOString();
+            }
+        });
+
+        await saveInventory(inventory);
+        res.json({ success: true, inventory });
+
+    } catch (err) {
+        res.status(500).json({ success: false, message: 'Failed to batch update inventory.' });
+    }
+});
+
+module.exports = router;
+
