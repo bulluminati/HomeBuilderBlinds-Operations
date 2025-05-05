@@ -21,6 +21,7 @@
         <!-- Side Navigation -->
         <nav class="side-nav">
             <button class="nav-button active" data-tab="home">Dashboard</button>
+            <button class="nav-button" data-tab="suppliers">Suppliers</button>
             <button class="nav-button" data-tab="workOrders">Work Orders</button>
             <button class="nav-button" data-tab="invoices">Invoices</button>
             <button class="nav-button" data-tab="pickSheet">Pick Sheet</button>
@@ -473,7 +474,46 @@
       <div id="availabilityResult"></div>
     </div>
   </div>
-
+<!-- Suppliers Tab -->
+<div id="suppliers" class="tab-content premium-tab">
+    <h2 class="premium-header">Supplier Management</h2>
+    <div class="business-section">
+      <h3 class="premium-subheader">Add New Supplier</h3>
+      <form id="supplierAccountForm">
+        <div class="premium-form-grid">
+          <div class="premium-input-group">
+            <label>Supplier Name:</label>
+            <input type="text" id="supplierAccountName" required class="premium-input">
+          </div>
+          <div class="premium-input-group">
+            <label>Email:</label>
+            <input type="email" id="supplierAccountEmail" required class="premium-input">
+          </div>
+          <div class="premium-input-group">
+            <label>Contact Person:</label>
+            <input type="text" id="supplierAccountContactPerson" class="premium-input">
+          </div>
+          <div class="premium-input-group">
+            <label>Phone:</label>
+            <input type="tel" id="supplierAccountPhone" class="premium-input">
+          </div>
+          <div class="premium-input-group">
+            <label>Product Types:</label>
+            <input type="text" id="supplierAccountProductTypes" placeholder="e.g. faux wood, vertical blinds" class="premium-input">
+          </div>
+          <div class="premium-input-group">
+            <label>Lead Time (days):</label>
+            <input type="number" id="supplierAccountLeadTime" min="0" value="5" class="premium-input">
+          </div>
+        </div>
+        <button type="button" onclick="createSupplierAccount()" class="premium-button">Create Supplier Account</button>
+      </form>
+    </div>
+    <div class="business-section">
+      <h3 class="premium-subheader">Supplier List</h3>
+      <div id="supplierList"></div>
+    </div>
+  </div>
             <!-- Will Call Tab -->
 <div id="willCall" class="tab-content premium-tab">
     <h2 class="premium-header">Will Call Orders</h2>
@@ -622,6 +662,8 @@
 </div>
 
     <script src="core.js"></script>
+    <script src="clientManagement.js"></script>
+    <script src="supplierManagement.js"></script>
     <script src="dashboard.js"></script>
     <script src="workOrders.js"></script>
     <script src="invoices.js"></script>

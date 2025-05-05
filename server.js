@@ -9,15 +9,127 @@ const PORT = process.env.PORT || 3000;
 
 // Import the blind orders router
 const blindOrdersRouter = require('./routes/blindOrders');
+
 // Database paths
 const measurementsDbPath = path.join(__dirname, 'data', 'shallowgrave.db');
 const blindOrdersDbPath = path.join(__dirname, '../HomeBuilderBlinds-Agent-Operations/data/homebuilder_ops.db');
+
 // Log the database paths to verify
 console.log("Measurements database path:", measurementsDbPath);
 console.log("Measurements database exists:", fs.existsSync(measurementsDbPath));
 console.log("Blind orders database path:", blindOrdersDbPath);
 console.log("Blind orders database exists:", fs.existsSync(blindOrdersDbPath));
 
+// Add this to your server.js initialization code
+
+const initSuppliersTable = () => {
+  const db = new sqlite3.Database(blindOrdersDbPath, (err) => {
+    if (err) {
+      console.error('Error connecting to suppliers database:', err.message);
+      return;
+    }
+    console.log('Connected to the blinds orders SQLite database for suppliers initialization');
+    
+    // First check if the table exists
+    db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='suppliers'", (err, row) => {
+      if (err) {
+        console.error('Error checking if suppliers table exists:', err.message);
+        db.close();
+        return;
+      }
+      
+      if (row) {
+        // Table exists, check if it has all required columns
+        db.all("PRAGMA table_info(suppliers)", (err, columns) => {
+          if (err) {
+            console.error('Error getting suppliers table columns:', err.message);
+            db.close();
+            return;
+          }
+          
+          // Convert columns to column names for easier checking
+          const columnNames = columns.map(col => col.name);
+          console.log('Existing suppliers table columns:', columnNames.join(', '));
+          
+          // Define required columns
+          const requiredColumns = [
+            'id', 'name', 'email', 'contact_person', 'phone', 
+            'product_types', 'lead_time', 'default_terms', 'notes', 
+            'created_at', 'updated_at'
+          ];
+          
+          // Find missing columns
+          const missingColumns = requiredColumns.filter(col => !columnNames.includes(col));
+          
+          if (missingColumns.length > 0) {
+            console.log('Missing columns in suppliers table:', missingColumns.join(', '));
+            
+            // Add each missing column
+            let pendingAlters = missingColumns.length;
+            
+            missingColumns.forEach(column => {
+              let dataType = 'TEXT';
+              if (column === 'id') dataType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
+              if (column === 'lead_time') dataType = 'INTEGER';
+              if (column === 'created_at' || column === 'updated_at') {
+                dataType = 'TEXT DEFAULT CURRENT_TIMESTAMP';
+              }
+              
+              db.run(`ALTER TABLE suppliers ADD COLUMN ${column} ${dataType}`, (err) => {
+                pendingAlters--;
+                
+                if (err) {
+                  console.error(`Error adding ${column} column:`, err.message);
+                } else {
+                  console.log(`Added ${column} column to suppliers table`);
+                }
+                
+                // Close db when all operations complete
+                if (pendingAlters === 0) {
+                  console.log('Suppliers table updated with all required columns');
+                  db.close();
+                }
+              });
+            });
+          } else {
+            console.log('Suppliers table has all required columns');
+            db.close();
+          }
+        });
+      } else {
+        // Table doesn't exist, create it
+        console.log('Suppliers table does not exist, creating it...');
+        
+        db.run(`CREATE TABLE suppliers (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT,
+          email TEXT UNIQUE,
+          contact_person TEXT,
+          phone TEXT,
+          product_types TEXT,
+          lead_time INTEGER,
+          default_terms TEXT,
+          notes TEXT,
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+          updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )`, (err) => {
+          if (err) {
+            console.error('Error creating suppliers table:', err.message);
+          } else {
+            console.log('Suppliers table created successfully');
+          }
+          db.close();
+        });
+      }
+    });
+  });
+};
+// Call this function in your initialization code
+try {
+  initSuppliersTable();
+} catch (err) {
+  console.error('Failed to initialize suppliers table:', err.message);
+}
 
 // Initialize the database and create the tables if they don't exist
 const initDatabase = () => {
@@ -72,6 +184,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Add the blind orders API route
 app.use('/api/blindorders', blindOrdersRouter);
+
 // Serve index.html
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -442,6 +555,605 @@ app.delete('/api/measurements/:id', (req, res) => {
         });
       }
     );
+  });
+});
+// SUPPLIER MANAGEMENT API ENDPOINTS
+// GET all suppliers
+app.get('/api/suppliers', (req, res) => {
+  // Check if database is accessible
+  if (!fs.existsSync(blindOrdersDbPath)) {
+    return res.status(503).json({
+      success: false,
+      message: 'Database not accessible',
+      error: 'Database file not found'
+    });
+  }
+  
+  const db = new sqlite3.Database(blindOrdersDbPath, (err) => {
+    if (err) {
+      console.error('Error connecting to database:', err.message);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Error connecting to database',
+        error: err.message
+      });
+    }
+    
+    db.all(
+      `SELECT 
+        id, name, email, contact_person, phone, product_types, 
+        lead_time, default_terms, notes, created_at, updated_at
+      FROM suppliers
+      ORDER BY name ASC`,
+      [],
+      (err, rows) => {
+        db.close();
+        
+        if (err) {
+          console.error('Error fetching suppliers:', err);
+          return res.status(500).json({ 
+            success: false, 
+            message: 'Error fetching suppliers',
+            error: err.message
+          });
+        }
+        
+        res.status(200).json({
+          success: true,
+          data: rows
+        });
+      }
+    );
+  });
+});
+
+// POST new supplier
+app.post('/api/suppliers', (req, res) => {
+  const { 
+    name, 
+    email, 
+    contact_person,
+    phone, 
+    product_types,
+    lead_time,
+    default_terms,
+    notes
+  } = req.body;
+  
+  // Validate required fields
+  if (!name || !email) {
+    return res.status(400).json({
+      success: false,
+      message: 'Supplier name and email are required'
+    });
+  }
+  
+  const db = new sqlite3.Database(blindOrdersDbPath, (err) => {
+    if (err) {
+      console.error('Error connecting to database:', err.message);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Error connecting to database',
+        error: err.message
+      });
+    }
+    
+    // Check if a supplier with this email already exists
+    db.get('SELECT id FROM suppliers WHERE email = ?', [email], (err, row) => {
+      if (err) {
+        db.close();
+        console.error('Error checking for existing supplier:', err);
+        return res.status(500).json({ 
+          success: false, 
+          message: 'Error checking for existing supplier',
+          error: err.message
+        });
+      }
+      
+      // If supplier exists, update instead of insert
+      if (row) {
+        const sql = `
+          UPDATE suppliers 
+          SET name = ?, contact_person = ?, phone = ?,
+              product_types = ?, lead_time = ?, default_terms = ?,
+              notes = ?, updated_at = CURRENT_TIMESTAMP
+          WHERE id = ?
+        `;
+        
+        db.run(sql, [
+          name,
+          contact_person || '',
+          phone || '',
+          product_types || '',
+          lead_time || 0,
+          default_terms || '',
+          notes || '',
+          row.id
+        ], function(err) {
+          db.close();
+          
+          if (err) {
+            console.error('Error updating supplier:', err);
+            return res.status(500).json({ 
+              success: false, 
+              message: 'Error updating supplier',
+              error: err.message
+            });
+          }
+          
+          res.status(200).json({
+            success: true,
+            message: 'Supplier updated successfully',
+            id: row.id
+          });
+        });
+      } else {
+        // Insert new supplier
+        const sql = `
+          INSERT INTO suppliers (
+            name, email, contact_person, phone, 
+            product_types, lead_time, default_terms, notes,
+            created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        `;
+        
+        db.run(sql, [
+          name,
+          email,
+          contact_person || '',
+          phone || '',
+          product_types || '',
+          lead_time || 0,
+          default_terms || '',
+          notes || ''
+        ], function(err) {
+          db.close();
+          
+          if (err) {
+            console.error('Error creating supplier:', err);
+            return res.status(500).json({ 
+              success: false, 
+              message: 'Error creating supplier',
+              error: err.message
+            });
+          }
+          
+          res.status(201).json({
+            success: true,
+            message: 'Supplier created successfully',
+            id: this.lastID
+          });
+        });
+      }
+    });
+  });
+});
+// CLIENT MANAGEMENT API ENDPOINTS
+// GET all clients
+app.get('/api/clients', (req, res) => {
+  // Check if database is accessible
+  if (!fs.existsSync(blindOrdersDbPath)) {
+    return res.status(503).json({
+      success: false,
+      message: 'Database not accessible',
+      error: 'Database file not found'
+    });
+  }
+  
+  const db = new sqlite3.Database(blindOrdersDbPath, (err) => {
+    if (err) {
+      console.error('Error connecting to database:', err.message);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Error connecting to database',
+        error: err.message
+      });
+    }
+    
+    db.all(
+      `SELECT 
+        id, name, email, phone, address, company, type, 
+        service_type, measurement_type, default_discount, notes,
+        created_at, updated_at
+      FROM clients
+      ORDER BY name ASC`,
+      [],
+      (err, rows) => {
+        db.close();
+        
+        if (err) {
+          console.error('Error fetching clients:', err);
+          return res.status(500).json({ 
+            success: false, 
+            message: 'Error fetching clients',
+            error: err.message
+          });
+        }
+        
+        // Map database field names to client manager field names for compatibility
+        const clients = rows.map(row => ({
+          id: row.id.toString(),
+          name: row.name || '',
+          email: row.email || '',
+          phone: row.phone || '',
+          propertyName: row.company || '',
+          type: row.type || 'residential',
+          serviceType: row.service_type || 'installation',
+          measurementType: row.measurement_type || 'window',
+          defaultDiscount: row.default_discount || 0,
+          notes: row.notes || '',
+          address: row.address || '',
+          created_at: row.created_at,
+          updated_at: row.updated_at
+        }));
+        
+        res.status(200).json(clients);
+      }
+    );
+  });
+});
+
+// GET client by ID
+app.get('/api/clients/:id', (req, res) => {
+  const clientId = req.params.id;
+  
+  const db = new sqlite3.Database(blindOrdersDbPath, (err) => {
+    if (err) {
+      console.error('Error connecting to database:', err.message);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Error connecting to database',
+        error: err.message
+      });
+    }
+    
+    db.get('SELECT * FROM clients WHERE id = ?', [clientId], (err, row) => {
+      db.close();
+      
+      if (err) {
+        console.error('Error fetching client:', err);
+        return res.status(500).json({ 
+          success: false, 
+          message: 'Error fetching client',
+          error: err.message
+        });
+      }
+      
+      if (!row) {
+        return res.status(404).json({
+          success: false,
+          message: 'Client not found'
+        });
+      }
+      
+      // Map database field names to client manager field names for compatibility
+      const client = {
+        id: row.id.toString(),
+        name: row.name || '',
+        email: row.email || '',
+        phone: row.phone || '',
+        propertyName: row.company || '',
+        type: row.type || 'residential',
+        serviceType: row.service_type || 'installation',
+        measurementType: row.measurement_type || 'window',
+        defaultDiscount: row.default_discount || 0,
+        notes: row.notes || '',
+        address: row.address || '',
+        created_at: row.created_at,
+        updated_at: row.updated_at
+      };
+      
+      res.status(200).json(client);
+    });
+  });
+});
+
+// POST new client
+app.post('/api/clients', (req, res) => {
+  const { 
+    name, 
+    email, 
+    phone, 
+    propertyName, 
+    type, 
+    serviceType, 
+    measurementType, 
+    defaultDiscount, 
+    notes,
+    address 
+  } = req.body;
+  
+  // Validate required fields
+  if (!name || !email) {
+    return res.status(400).json({
+      success: false,
+      message: 'Client name and email are required'
+    });
+  }
+  
+  const db = new sqlite3.Database(blindOrdersDbPath, (err) => {
+    if (err) {
+      console.error('Error connecting to database:', err.message);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Error connecting to database',
+        error: err.message
+      });
+    }
+    
+    // Check if a client with this email already exists
+    db.get('SELECT id FROM clients WHERE email = ?', [email], (err, row) => {
+      if (err) {
+        db.close();
+        console.error('Error checking for existing client:', err);
+        return res.status(500).json({ 
+          success: false, 
+          message: 'Error checking for existing client',
+          error: err.message
+        });
+      }
+      
+      // If client exists, update instead of insert
+      if (row) {
+        const sql = `
+          UPDATE clients 
+          SET name = ?, phone = ?, address = ?, company = ?,
+              type = ?, service_type = ?, measurement_type = ?, 
+              default_discount = ?, notes = ?, updated_at = CURRENT_TIMESTAMP
+          WHERE id = ?
+        `;
+        
+        db.run(sql, [
+          name,
+          phone || '',
+          address || '',
+          propertyName || '',
+          type || 'residential',
+          serviceType || 'installation',
+          measurementType || 'window',
+          defaultDiscount || 0,
+          notes || '',
+          row.id
+        ], function(err) {
+          db.close();
+          
+          if (err) {
+            console.error('Error updating client:', err);
+            return res.status(500).json({ 
+              success: false, 
+              message: 'Error updating client',
+              error: err.message
+            });
+          }
+          
+          res.status(200).json({
+            success: true,
+            message: 'Client updated successfully',
+            id: row.id,
+            ...req.body
+          });
+        });
+      } else {
+        // Insert new client
+        const sql = `
+          INSERT INTO clients (
+            name, phone, address, email, company, 
+            type, service_type, measurement_type, default_discount, notes,
+            created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        `;
+        
+        db.run(sql, [
+          name,
+          phone || '',
+          address || '',
+          email,
+          propertyName || '',
+          type || 'residential',
+          serviceType || 'installation',
+          measurementType || 'window',
+          defaultDiscount || 0,
+          notes || ''
+        ], function(err) {
+          db.close();
+          
+          if (err) {
+            console.error('Error creating client:', err);
+            return res.status(500).json({ 
+              success: false, 
+              message: 'Error creating client',
+              error: err.message
+            });
+          }
+          
+          res.status(201).json({
+            success: true,
+            message: 'Client created successfully',
+            id: this.lastID,
+            ...req.body
+          });
+        });
+      }
+    });
+  });
+});
+
+// PUT update client
+app.put('/api/clients/:id', (req, res) => {
+  const clientId = req.params.id;
+  const { 
+    name, 
+    email, 
+    phone, 
+    propertyName, 
+    type, 
+    serviceType, 
+    measurementType, 
+    defaultDiscount, 
+    notes,
+    address 
+  } = req.body;
+  
+  // Validate required fields
+  if (!name || !email) {
+    return res.status(400).json({
+      success: false,
+      message: 'Client name and email are required'
+    });
+  }
+  
+  const db = new sqlite3.Database(blindOrdersDbPath, (err) => {
+    if (err) {
+      console.error('Error connecting to database:', err.message);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Error connecting to database',
+        error: err.message
+      });
+    }
+    
+    const sql = `
+      UPDATE clients 
+      SET name = ?, phone = ?, address = ?, email = ?, company = ?,
+          type = ?, service_type = ?, measurement_type = ?, 
+          default_discount = ?, notes = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `;
+    
+    db.run(sql, [
+      name,
+      phone || '',
+      address || '',
+      email,
+      propertyName || '',
+      type || 'residential',
+      serviceType || 'installation',
+      measurementType || 'window',
+      defaultDiscount || 0,
+      notes || '',
+      clientId
+    ], function(err) {
+      db.close();
+      
+      if (err) {
+        console.error('Error updating client:', err);
+        return res.status(500).json({ 
+          success: false, 
+          message: 'Error updating client',
+          error: err.message
+        });
+      }
+      
+      if (this.changes === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Client not found'
+        });
+      }
+      
+      res.status(200).json({
+        success: true,
+        message: 'Client updated successfully',
+        id: clientId,
+        ...req.body
+      });
+    });
+  });
+});
+
+// DELETE client
+app.delete('/api/clients/:id', (req, res) => {
+  const clientId = req.params.id;
+  
+  const db = new sqlite3.Database(blindOrdersDbPath, (err) => {
+    if (err) {
+      console.error('Error connecting to database:', err.message);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Error connecting to database',
+        error: err.message
+      });
+    }
+    
+    db.run('DELETE FROM clients WHERE id = ?', [clientId], function(err) {
+      db.close();
+      
+      if (err) {
+        console.error('Error deleting client:', err);
+        return res.status(500).json({ 
+          success: false, 
+          message: 'Error deleting client',
+          error: err.message
+        });
+      }
+      
+      if (this.changes === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Client not found'
+        });
+      }
+      
+      res.status(200).json({
+        success: true,
+        message: 'Client deleted successfully'
+      });
+    });
+  });
+});
+
+// GET clients by email
+app.get('/api/clients/email/:email', (req, res) => {
+  const email = req.params.email;
+  
+  const db = new sqlite3.Database(blindOrdersDbPath, (err) => {
+    if (err) {
+      console.error('Error connecting to database:', err.message);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Error connecting to database',
+        error: err.message
+      });
+    }
+    
+    db.get('SELECT * FROM clients WHERE email = ?', [email], (err, row) => {
+      db.close();
+      
+      if (err) {
+        console.error('Error fetching client by email:', err);
+        return res.status(500).json({ 
+          success: false, 
+          message: 'Error fetching client by email',
+          error: err.message
+        });
+      }
+      
+      if (!row) {
+        return res.status(404).json({
+          success: false,
+          message: 'Client not found'
+        });
+      }
+      
+      // Map database field names to client manager field names for compatibility
+      const client = {
+        id: row.id.toString(),
+        name: row.name || '',
+        email: row.email || '',
+        phone: row.phone || '',
+        propertyName: row.company || '',
+        type: row.type || 'residential',
+        serviceType: row.service_type || 'installation',
+        measurementType: row.measurement_type || 'window',
+        defaultDiscount: row.default_discount || 0,
+        notes: row.notes || '',
+        address: row.address || '',
+        created_at: row.created_at,
+        updated_at: row.updated_at
+      };
+      
+      res.status(200).json(client);
+    });
   });
 });
 
