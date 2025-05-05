@@ -7,22 +7,26 @@ const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Database path - for Linux Ubuntu
-// Adjust the username and marketing app folder name as needed
-// Example: /home/username/Desktop/marketing-app/data/shallowgrave.db
-const dbPath = path.join(__dirname, '..', 'HomeBuilderBlinds--Marketing', 'data', 'shallowgrave.db');
-// Log the database path to verify
-console.log("Database path:", dbPath);
-console.log("Database exists:", fs.existsSync(dbPath));
+// Import the blind orders router
+const blindOrdersRouter = require('./routes/blindOrders');
+// Database paths
+const measurementsDbPath = path.join(__dirname, 'data', 'shallowgrave.db');
+const blindOrdersDbPath = path.join(__dirname, '../HomeBuilderBlinds-Agent-Operations/data/homebuilder_ops.db');
+// Log the database paths to verify
+console.log("Measurements database path:", measurementsDbPath);
+console.log("Measurements database exists:", fs.existsSync(measurementsDbPath));
+console.log("Blind orders database path:", blindOrdersDbPath);
+console.log("Blind orders database exists:", fs.existsSync(blindOrdersDbPath));
+
 
 // Initialize the database and create the tables if they don't exist
 const initDatabase = () => {
-  const db = new sqlite3.Database(dbPath, (err) => {
+  const db = new sqlite3.Database(measurementsDbPath, (err) => {
     if (err) {
-      console.error('Error connecting to database:', err.message);
+      console.error('Error connecting to measurements database:', err.message);
       return;
     }
-    console.log('Connected to the SQLite database at:', dbPath);
+    console.log('Connected to the measurements SQLite database at:', measurementsDbPath);
     
     // Create blinds_measurements table if it doesn't exist
     db.run(`CREATE TABLE IF NOT EXISTS blinds_measurements (
@@ -63,9 +67,11 @@ try {
 
 // Middleware
 app.use(cors());
-app.use(express.json({ limit: '10mb' })); // Increased limit for potential image data
+app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Add the blind orders API route
+app.use('/api/blindorders', blindOrdersRouter);
 // Serve index.html
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -86,7 +92,7 @@ app.post('/api/measurements', (req, res) => {
     }
     
     // Check if database is accessible
-    if (!fs.existsSync(dbPath)) {
+    if (!fs.existsSync(measurementsDbPath)) {
       return res.status(503).json({
         success: false,
         message: 'Database not accessible',
@@ -98,7 +104,7 @@ app.post('/api/measurements', (req, res) => {
     const dataJSON = JSON.stringify(measurementData);
     
     // Connect to database
-    const db = new sqlite3.Database(dbPath, (err) => {
+    const db = new sqlite3.Database(measurementsDbPath, (err) => {
       if (err) {
         console.error('Error connecting to database:', err.message);
         return res.status(500).json({ 
@@ -216,7 +222,7 @@ app.post('/api/measurements', (req, res) => {
 // API endpoint to get all measurements
 app.get('/api/measurements', (req, res) => {
   // Check if database is accessible
-  if (!fs.existsSync(dbPath)) {
+  if (!fs.existsSync(measurementsDbPath)) {
     return res.status(503).json({
       success: false,
       message: 'Database not accessible',
@@ -224,7 +230,7 @@ app.get('/api/measurements', (req, res) => {
     });
   }
   
-  const db = new sqlite3.Database(dbPath, (err) => {
+  const db = new sqlite3.Database(measurementsDbPath, (err) => {
     if (err) {
       console.error('Error connecting to database:', err.message);
       return res.status(500).json({ 
@@ -305,7 +311,7 @@ app.get('/api/measurements/:id', (req, res) => {
   const measurementId = req.params.id;
   
   // Check if database is accessible
-  if (!fs.existsSync(dbPath)) {
+  if (!fs.existsSync(measurementsDbPath)) {
     return res.status(503).json({
       success: false,
       message: 'Database not accessible',
@@ -313,7 +319,7 @@ app.get('/api/measurements/:id', (req, res) => {
     });
   }
   
-  const db = new sqlite3.Database(dbPath, (err) => {
+  const db = new sqlite3.Database(measurementsDbPath, (err) => {
     if (err) {
       console.error('Error connecting to database:', err.message);
       return res.status(500).json({ 
@@ -390,7 +396,7 @@ app.delete('/api/measurements/:id', (req, res) => {
   const measurementId = req.params.id;
   
   // Check if database is accessible
-  if (!fs.existsSync(dbPath)) {
+  if (!fs.existsSync(measurementsDbPath)) {
     return res.status(503).json({
       success: false,
       message: 'Database not accessible',
@@ -398,7 +404,7 @@ app.delete('/api/measurements/:id', (req, res) => {
     });
   }
   
-  const db = new sqlite3.Database(dbPath, (err) => {
+  const db = new sqlite3.Database(measurementsDbPath, (err) => {
     if (err) {
       console.error('Error connecting to database:', err.message);
       return res.status(500).json({ 
@@ -439,8 +445,19 @@ app.delete('/api/measurements/:id', (req, res) => {
   });
 });
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ 
+    success: false, 
+    message: 'Something went wrong!',
+    error: err.message 
+  });
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
-  console.log(`Database path: ${dbPath}`);
+  console.log(`Measurements database path: ${measurementsDbPath}`);
+  console.log(`Blind orders database path: ${blindOrdersDbPath}`);
 });

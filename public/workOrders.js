@@ -1,11 +1,14 @@
-// workOrders.js
+// workOrders.js - Complete Implementation
+
+// Function to add a new line item to the work order
 function addLineItem() {
     const workOrderTable = document.getElementById('workOrderTable').querySelector('tbody');
     const row = createTableRow([
-        `<select><option value="Faux Wood">Faux Wood</option>
-          <option value="Vertical">Vertical</option>
-          <option value="Installation">Installation ($15/window)</option>
-          <option value="Removal">Removal ($5/window)</option>
+        `<select>
+            <option value="Faux Wood">Faux Wood</option>
+            <option value="Vertical">Vertical</option>
+            <option value="Installation">Installation ($15/window)</option>
+            <option value="Removal">Removal ($5/window)</option>
         </select>`,
         `<input type="number" placeholder="Width (in)" step="0.125">`,
         `<input type="number" placeholder="Length (in)" step="0.125">`,
@@ -22,12 +25,10 @@ function addLineItem() {
     const inputs = row.querySelectorAll('input');
     inputs.forEach(input => {
         input.addEventListener('input', () => {
-            // For width/length inputs, trigger size check
             if (input.placeholder === "Width (in)" || input.placeholder === "Length (in)") {
                 const row = input.closest('tr');
                 checkSizeAndUpdatePrice(row);
             }
-            // For all inputs, update totals
             updateTotals();
         });
     });
@@ -37,68 +38,59 @@ function addLineItem() {
     if (select) {
         select.addEventListener('change', () => {
             const row = select.closest('tr');
+            const unitPriceElement = row.querySelector('.unit-price');
             
-            // If Installation is selected, set unit price to $15
             if (select.value === 'Installation') {
-                const unitPriceElement = row.querySelector('.unit-price');
                 unitPriceElement.textContent = '$15.00';
-                
-                // Clear width/length fields if any
                 const widthInput = row.querySelector('input[placeholder="Width (in)"]');
                 const lengthInput = row.querySelector('input[placeholder="Length (in)"]');
                 if (widthInput) widthInput.value = '';
                 if (lengthInput) lengthInput.value = '';
                 
-                // Set recommendation note
                 const recommendedSizeElement = row.querySelector('.recommended-size');
                 if (recommendedSizeElement) {
                     recommendedSizeElement.textContent = 'Min. charge $75.00';
                 }
             }
-            // If Removal is selected, set unit price to $5
             else if (select.value === 'Removal') {
-                const unitPriceElement = row.querySelector('.unit-price');
                 unitPriceElement.textContent = '$5.00';
-                
-                // Clear width/length fields if any
                 const widthInput = row.querySelector('input[placeholder="Width (in)"]');
                 const lengthInput = row.querySelector('input[placeholder="Length (in)"]');
                 if (widthInput) widthInput.value = '';
                 if (lengthInput) lengthInput.value = '';
                 
-                // Clear recommendation note
                 const recommendedSizeElement = row.querySelector('.recommended-size');
                 if (recommendedSizeElement) {
                     recommendedSizeElement.textContent = '-';
                 }
             }
             else {
-                // For other blind types, check size and update price
                 checkSizeAndUpdatePrice(row);
             }
             
-            // Update totals
             updateTotals();
         });
     }
     
     updateTotals();
+    return row; // Critical for programmatic use
 }
 
+// Function to update all totals
 function updateTotals() {
     const workOrderTable = document.getElementById('workOrderTable');
     const rows = workOrderTable.getElementsByTagName('tr');
     const discountInput = document.getElementById('discountPercent');
     const subtotalElement = document.getElementById('subtotal');
     const discountAmountElement = document.getElementById('discountAmount');
-    const taxElement = document.getElementById('taxAmount'); // Make sure this element exists in HTML
+    const taxElement = document.getElementById('taxAmount');
     const grandTotalElement = document.getElementById('grandTotal');
     
     let subtotal = 0;
     let installationTotal = 0;
     let hasInstallation = false;
     
-    for (let i = 1; i < rows.length - 4; i++) { // Adjusted for the extra tax row
+    for (let i = 1; i < rows.length - 4; i++) {
         const cells = rows[i].getElementsByTagName('td');
         if (cells.length > 0) {
             const blindType = cells[0].querySelector('select')?.value || '';
@@ -106,7 +98,6 @@ function updateTotals() {
             const unitPrice = parseFloat(cells[6].querySelector('.unit-price').textContent.replace('$', '')) || 0;
             let total = quantity * unitPrice;
             
-            // Track installation service for minimum charge
             if (blindType === 'Installation') {
                 hasInstallation = true;
                 installationTotal += total;
@@ -119,25 +110,21 @@ function updateTotals() {
     
     // Apply minimum $75 installation charge if needed
     if (hasInstallation && installationTotal < 75) {
-        // Calculate the difference to add to subtotal
         const difference = 75 - installationTotal;
         subtotal += difference;
         
-        // Update line totals for installation rows
         for (let i = 1; i < rows.length - 4; i++) {
             const cells = rows[i].getElementsByTagName('td');
             if (cells.length > 0) {
                 const blindType = cells[0].querySelector('select')?.value || '';
                 if (blindType === 'Installation') {
-                    // Find the first installation row and set it to the minimum
                     const lineTotal = cells[7].querySelector('.line-total');
                     const quantity = parseInt(cells[3].querySelector('input')?.value || '0');
                     const unitPrice = parseFloat(cells[6].querySelector('.unit-price').textContent.replace('$', '')) || 0;
                     const rowTotal = quantity * unitPrice;
                     
-                    // Add the difference to the first installation row
                     lineTotal.textContent = formatCurrency(rowTotal + difference);
-                    break; // Only update one row
+                    break;
                 }
             }
         }
@@ -148,7 +135,6 @@ function updateTotals() {
     const discountAmount = (subtotal * (discountPercent / 100));
     discountAmountElement.textContent = formatCurrency(discountAmount);
     
-    // Changed to 8.25% tax for Euless, TX
     const discountedSubtotal = subtotal - discountAmount;
     const taxAmount = discountedSubtotal * 0.0825; // 8.25% tax
     if (taxElement) {
@@ -159,100 +145,13 @@ function updateTotals() {
     grandTotalElement.textContent = formatCurrency(grandTotal);
 }
 
-function addLineItem() {
-    const workOrderTable = document.getElementById('workOrderTable').querySelector('tbody');
-    const row = createTableRow([
-        `<select><option value="Faux Wood">Faux Wood</option>
-          <option value="Vertical">Vertical</option>
-          <option value="Installation">Installation ($15/window)</option>
-          <option value="Removal">Removal ($5/window)</option>
-        </select>`,
-        `<input type="number" placeholder="Width (in)" step="0.125">`,
-        `<input type="number" placeholder="Length (in)" step="0.125">`,
-        `<input type="number" placeholder="Quantity" min="1" value="1" class="quantity-input">`,
-        `<span class="stock-status">-</span>`,
-        `<span class="recommended-size">-</span>`,
-        `<span class="unit-price">$0.00</span>`,
-        `<span class="line-total">$0.00</span>`,
-        `<button onclick="removeLineItem(this)">Remove</button>`
-    ]);
-    workOrderTable.appendChild(row);
-    
-    // Add event listeners to the new inputs
-    const inputs = row.querySelectorAll('input');
-    inputs.forEach(input => {
-        input.addEventListener('input', () => {
-            // For width/length inputs, trigger size check
-            if (input.placeholder === "Width (in)" || input.placeholder === "Length (in)") {
-                const row = input.closest('tr');
-                checkSizeAndUpdatePrice(row);
-            }
-            // For all inputs, update totals
-            updateTotals();
-        });
-    });
-    
-    // Add change event listener to the select
-    const select = row.querySelector('select');
-    if (select) {
-        select.addEventListener('change', () => {
-            const row = select.closest('tr');
-            
-            // If Installation is selected, set unit price to $15
-            if (select.value === 'Installation') {
-                const unitPriceElement = row.querySelector('.unit-price');
-                unitPriceElement.textContent = '$15.00';
-                
-                // Clear width/length fields if any
-                const widthInput = row.querySelector('input[placeholder="Width (in)"]');
-                const lengthInput = row.querySelector('input[placeholder="Length (in)"]');
-                if (widthInput) widthInput.value = '';
-                if (lengthInput) lengthInput.value = '';
-                
-                // Set recommendation note
-                const recommendedSizeElement = row.querySelector('.recommended-size');
-                if (recommendedSizeElement) {
-                    recommendedSizeElement.textContent = 'Min. charge $75.00';
-                }
-            }
-            // If Removal is selected, set unit price to $5
-            else if (select.value === 'Removal') {
-                const unitPriceElement = row.querySelector('.unit-price');
-                unitPriceElement.textContent = '$5.00';
-                
-                // Clear width/length fields if any
-                const widthInput = row.querySelector('input[placeholder="Width (in)"]');
-                const lengthInput = row.querySelector('input[placeholder="Length (in)"]');
-                if (widthInput) widthInput.value = '';
-                if (lengthInput) lengthInput.value = '';
-                
-                // Clear recommendation note
-                const recommendedSizeElement = row.querySelector('.recommended-size');
-                if (recommendedSizeElement) {
-                    recommendedSizeElement.textContent = '-';
-                }
-            }
-            else {
-                // For other blind types, check size and update price
-                checkSizeAndUpdatePrice(row);
-            }
-            
-            // Update totals
-            updateTotals();
-        });
-    }
-    
-    updateTotals();
-}
-
-// New helper function to check size and update price
+// Function to check stock size and update price
 function checkSizeAndUpdatePrice(row) {
     const widthInput = row.querySelector('input[placeholder="Width (in)"]');
     const lengthInput = row.querySelector('input[placeholder="Length (in)"]');
     const width = parseFloat(widthInput?.value);
     const length = parseFloat(lengthInput?.value);
     
-    // Get the status and recommended size elements
     const stockStatusElement = row.querySelector('.stock-status');
     const recommendedSizeElement = row.querySelector('.recommended-size');
     const unitPriceElement = row.querySelector('.unit-price');
@@ -260,16 +159,18 @@ function checkSizeAndUpdatePrice(row) {
     const quantityInput = row.querySelector('.quantity-input');
     
     if (width && length) {
-        // Make sure these elements exist before trying to update them
         if (stockStatusElement && recommendedSizeElement && unitPriceElement) {
-            const match = findStockSize(width, length); // Function from inventory.js
+            // Find appropriate stock size with constraints:
+            // 1. Can only cut up to 1.5" off width
+            // 2. Can cut any amount off length
+            const match = findStockSize(width, length);
+            
             if (match) {
                 stockStatusElement.textContent = 'Available';
                 stockStatusElement.style.color = 'green';
                 recommendedSizeElement.textContent = `Pull size: ${match.stockSize}`;
                 unitPriceElement.textContent = formatCurrency(match.price);
                 
-                // Update line total if quantity exists
                 if (quantityInput && lineTotalElement) {
                     const quantity = parseInt(quantityInput.value || '1');
                     const total = quantity * match.price;
@@ -288,12 +189,196 @@ function checkSizeAndUpdatePrice(row) {
     }
 }
 
+// This is a placeholder for the findStockSize function that should be in inventory.js
+// This function should implement the logic described above
+function findStockSize(requestedWidth, requestedLength) {
+    // This should be implemented in inventory.js with the following logic:
+    // 1. Find all stock items where:
+    //    - Stock width is within 1.5" of requested width (stock_width >= requested_width && stock_width <= requested_width + 1.5)
+    //    - Stock length is >= requested length
+    // 2. Sort by width (ascending) to get the closest match
+    // 3. Return the first match that satisfies both constraints
+    
+    // For now, this is just calling the existing function from inventory.js
+    return window.findStockSize(requestedWidth, requestedLength);
+}
+
+// Function to remove a line item
 function removeLineItem(button) {
     const row = button.closest('tr');
     row.parentNode.removeChild(row);
     updateTotals();
 }
 
+// Auto-fill function that loads orders from blind orders API
+async function autoFillFromBlindOrders() {
+    console.log('=== Starting to auto-fill from blind orders ===');
+    
+    try {
+        const res = await fetch('/api/blindorders');
+        if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        
+        const orders = await res.json();
+        console.log('Received orders:', orders);
+        
+        // Find the most recent order to process
+        if (orders.length === 0) {
+            displayAutoCompleteStatus('No orders found');
+            return;
+        }
+        
+        // Get the most recent order
+        const mostRecentOrder = orders[0];
+        const fromEmail = mostRecentOrder.from_address.toLowerCase();
+        
+        // Determine if this is residential or commercial based on sender
+        const isResidential = fromEmail.includes('mike@homebuilderblinds.com');
+        const isCommercial = fromEmail.includes('roxanne.mitchell@uaginc.com') || 
+                            fromEmail.includes('erica@myforestparkapartments.com') ||
+                            fromEmail.includes('erica cook');
+        
+        if (!isResidential && !isCommercial) {
+            displayAutoCompleteStatus('Unknown sender - cannot determine order type');
+            return;
+        }
+        
+        // Clear existing form first
+        document.getElementById('workOrderForm').reset();
+        const tbody = document.querySelector('#workOrderTable tbody');
+        tbody.innerHTML = '';
+        
+        // Set client type and service type based on sender
+        const clientTypeSelect = document.getElementById('clientType');
+        const serviceTypeSelect = document.getElementById('serviceType');
+        
+        if (isResidential) {
+            // Residential settings
+            clientTypeSelect.value = 'residential';
+            serviceTypeSelect.value = 'installation';
+            
+            // For residential, extract client info from the order content
+            // This would need parsing logic based on your email format
+            document.getElementById('clientName').value = mostRecentOrder.client_name || '';
+            document.getElementById('clientPhone').value = mostRecentOrder.client_phone || '';
+            document.getElementById('clientEmail').value = mostRecentOrder.client_email || '';
+            
+        } else if (isCommercial) {
+            // Commercial settings
+            clientTypeSelect.value = 'commercial';
+            serviceTypeSelect.value = 'delivery'; // Changed from 'delivery only' to match dropdown
+            
+            // Set client information based on the sender
+            if (fromEmail.includes('roxanne')) {
+                document.getElementById('clientName').value = 'Roxanne Mitchell';
+                document.getElementById('propertyName').value = 'United Apartment Group';
+                document.getElementById('clientPhone').value = ''; // Add if known
+                document.getElementById('clientEmail').value = 'roxanne.mitchell@uaginc.com';
+            } else if (fromEmail.includes('erica')) {
+                document.getElementById('clientName').value = 'Erica Cook';
+                document.getElementById('propertyName').value = 'Forest Park Apartments';
+                document.getElementById('clientPhone').value = '817-442-3344';
+                document.getElementById('clientEmail').value = 'erica@myforestparkapartments.com';
+            }
+        }
+        
+        // Process all orders for this client
+        let clientOrders = orders.filter(order => 
+            order.from_address.toLowerCase().includes(fromEmail)
+        );
+        
+        console.log(`Found ${clientOrders.length} orders for ${fromEmail}`);
+        
+        // Add each order as a line item
+        clientOrders.forEach((order, index) => {
+            console.log(`Adding order ${index + 1}:`, order);
+            
+            const row = addLineItem();
+            
+            // Parse and set size
+            const sizeParts = order.size.replace(/["']/g, '').toLowerCase().split('x');
+            if (sizeParts.length === 2) {
+                let [width, length] = sizeParts;
+                width = parseFloat(width);
+                length = parseFloat(length);
+                
+                // Apply deduction for residential orders
+                if (isResidential) {
+                    width = width - 0.5; // Deduct 1/2 inch for residential
+                }
+                
+                row.querySelector('input[placeholder="Width (in)"]').value = width;
+                row.querySelector('input[placeholder="Length (in)"]').value = length;
+            }
+            
+            // Set blind type - default to what's in the order or Faux Wood
+            const typeSelect = row.querySelector('select');
+            if (typeSelect) {
+                // If order specifies vertical, set it, otherwise default to Faux Wood
+                if (order.type && order.type.toLowerCase().includes('vertical')) {
+                    typeSelect.value = 'Vertical';
+                } else {
+                    typeSelect.value = 'Faux Wood';
+                }
+            }
+            
+            // Set quantity
+            const quantityInput = row.querySelector('.quantity-input');
+            if (quantityInput) {
+                quantityInput.value = order.quantity || 1;
+            }
+            
+            // Trigger price check and update
+            checkSizeAndUpdatePrice(row);
+        });
+        
+        // Update totals after all items are added
+        updateTotals();
+        
+        // Display status
+        const senderName = isResidential ? 'residential order' : 
+                          (fromEmail.includes('roxanne') ? 'Roxanne Mitchell' : 'Erica Cook');
+        displayAutoCompleteStatus(`Successfully loaded ${clientOrders.length} orders for ${senderName}`);
+        
+    } catch (error) {
+        console.error('Error in autoFillFromBlindOrders:', error);
+        displayAutoCompleteStatus('Error loading orders: ' + error.message);
+    }
+}
+
+// Function to display auto-complete status
+function displayAutoCompleteStatus(message) {
+    let statusDiv = document.getElementById('autoCompleteStatus');
+    
+    if (!statusDiv) {
+        // Create status div if it doesn't exist
+        const workOrdersTab = document.getElementById('workOrders');
+        statusDiv = document.createElement('div');
+        statusDiv.id = 'autoCompleteStatus';
+        statusDiv.className = 'auto-complete-status';
+        statusDiv.style.marginTop = '10px';
+        statusDiv.style.padding = '10px';
+        statusDiv.style.backgroundColor = '#f0f8ff';
+        statusDiv.style.border = '1px solid #0366d6';
+        statusDiv.style.borderRadius = '4px';
+        statusDiv.style.display = 'none';
+        
+        // Insert after the form
+        const form = workOrdersTab.querySelector('form');
+        form.parentNode.insertBefore(statusDiv, form.nextSibling);
+    }
+    
+    statusDiv.textContent = `Auto-Completed Orders: ${message}`;
+    statusDiv.style.display = 'block';
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+        statusDiv.style.display = 'none';
+    }, 5000);
+}
+
+// Create estimate function
 function createEstimate() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
@@ -339,7 +424,7 @@ function createEstimate() {
     yPos = 130;
     let subtotal = 0;
     
-    for (let i = 1; i < rows.length - 4; i++) { // Adjusted for the extra tax row
+    for (let i = 1; i < rows.length - 4; i++) {
         const cells = rows[i].getElementsByTagName('td');
         if (cells.length > 0) {
             const blindType = cells[0].querySelector('select')?.value || '';
@@ -385,7 +470,7 @@ function createEstimate() {
     const discountPercent = parseFloat(document.getElementById('discountPercent').value || '0');
     const discountAmount = subtotal * (discountPercent / 100);
     const discountedSubtotal = subtotal - discountAmount;
-    const tax = discountedSubtotal * 0.0825; // Changed to 8.25% tax
+    const tax = discountedSubtotal * 0.0825; // 8.25% tax
     const total = discountedSubtotal + tax;
     
     yPos += 10;
@@ -401,7 +486,7 @@ function createEstimate() {
         yPos += 10;
     }
     
-    doc.text('Tax (8.25%):', 140, yPos); // Changed from 8.5% to 8.25%
+    doc.text('Tax (8.25%):', 140, yPos);
     doc.text('$' + tax.toFixed(2), 170, yPos);
     yPos += 10;
     
@@ -423,6 +508,7 @@ function createEstimate() {
     doc.save(fileName);
 }
 
+// Accept quote function
 function acceptQuote() {
     const workOrderData = {
         id: 'WO-' + Date.now().toString().slice(-6),
@@ -500,7 +586,7 @@ function acceptQuote() {
     alert('Work order sent to warehouse successfully!');
 }
 
-// Save/Load quote functionality
+// Save quote function
 function saveQuote() {
     const clientName = document.getElementById('clientName').value;
     if (!clientName) {
@@ -583,6 +669,7 @@ function saveQuote() {
     alert('Quote saved successfully!');
 }
 
+// Delete quote function
 function deleteQuote() {
     const quoteSelect = document.getElementById('loadQuote');
     const selectedQuoteId = quoteSelect.value;
@@ -609,6 +696,7 @@ function deleteQuote() {
     }
 }
 
+// Update quote dropdown function
 function updateQuoteDropdown() {
     const quoteSelect = document.getElementById('loadQuote');
     const savedQuotes = StorageUtil.load(StorageKeys.QUOTES) || [];
@@ -627,6 +715,7 @@ function updateQuoteDropdown() {
     });
 }
 
+// Load quote function
 function loadQuote() {
     const quoteSelect = document.getElementById('loadQuote');
     const selectedQuoteId = quoteSelect.value;
@@ -698,7 +787,7 @@ function loadQuote() {
             `<input type="number" placeholder="Quantity" min="1" value="${item.quantity}" class="quantity-input">`,
             `<span class="stock-status">-</span>`,
             `<span class="recommended-size">-</span>`,
-            `<span class="unit-price">$${item.unitPrice ? item.unitPrice.toFixed(2) : '0.00'}</span>`,
+            `<span class="unit-price">${item.unitPrice ? item.unitPrice.toFixed(2) : '0.00'}</span>`,
             `<span class="line-total">$0.00</span>`,
             `<button onclick="removeLineItem(this)">Remove</button>`
         ]);
@@ -716,22 +805,15 @@ function loadQuote() {
     alert('Quote loaded successfully');
 }
 
+// Initialize everything when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     // Basic event listeners
-    const quantityListener = function(e) {
-        if (e.target.tagName === 'INPUT' && e.target.type === 'number') {
-            updateTotals();
-        }
-    };
-    
     document.getElementById('workOrderTable')?.addEventListener('input', function(e) {
         if (e.target.tagName === 'INPUT' && e.target.type === 'number') {
             if (e.target.placeholder === "Width (in)" || e.target.placeholder === "Length (in)") {
                 const row = e.target.closest('tr');
                 checkSizeAndUpdatePrice(row);
             }
-            
-            // Update totals whenever any input changes
             updateTotals();
         }
     });
@@ -764,6 +846,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 loadQuote();
             }
         });
+    }
+    
+    // Add import from email button to work orders tab
+    const workOrdersTab = document.getElementById('workOrders');
+    if (workOrdersTab) {
+        const buttonGroup = workOrdersTab.querySelector('.premium-button-group');
+        if (buttonGroup) {
+            const importButton = document.createElement('button');
+            importButton.type = 'button';
+            importButton.className = 'premium-button';
+            importButton.style.backgroundColor = '#0366d6';
+            importButton.style.color = 'white';
+            importButton.innerHTML = '📧 Import Orders from Email';
+            importButton.onclick = autoFillFromBlindOrders;
+            
+            // Insert at the beginning of the button group
+            buttonGroup.insertBefore(importButton, buttonGroup.firstChild);
+        }
     }
     
     // Add tax row to the table footer if it doesn't exist
@@ -809,3 +909,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial update
     updateTotals();
 });
+
+// Make functions globally available for testing
+window.addLineItem = addLineItem;
+window.updateTotals = updateTotals;
+window.checkSizeAndUpdatePrice = checkSizeAndUpdatePrice;
+window.removeLineItem = removeLineItem;
+window.autoFillFromBlindOrders = autoFillFromBlindOrders;
+window.createEstimate = createEstimate;
+window.acceptQuote = acceptQuote;
+window.saveQuote = saveQuote;
+window.deleteQuote = deleteQuote;
+window.updateQuoteDropdown = updateQuoteDropdown;
+window.loadQuote = loadQuote;

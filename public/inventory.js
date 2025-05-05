@@ -139,7 +139,7 @@ function updateInventoryTable() {
     });
 }
 
-// Updated findStockSize function to handle various formats
+// Updated findStockSize function with proper width constraint
 function findStockSize(width, length) {
     console.log(`Finding stock size for ${width} x ${length}`);
     
@@ -152,7 +152,10 @@ function findStockSize(width, length) {
         console.log("First inventory item:", inventoryData[0]);
     }
     
-    // Find a matching stock size
+    // Array to store valid matches
+    const validMatches = [];
+    
+    // Find all matching stock sizes that meet our constraints
     for (const item of inventoryData) {
         if (!item.size || item.size === '') {
             console.log(`Skipping item ${item.itemNumber} - no size information`);
@@ -162,12 +165,13 @@ function findStockSize(width, length) {
         // Try to parse the size field - accept various formats:
         // "36x72", "36 x 72", "36" x 72"", etc.
         let sizeParts = [];
-        
         try {
             // Remove any non-numeric characters except for x, X, decimal points and spaces
             const cleanSize = item.size.replace(/[^0-9xX.\s]/g, '');
+            
             // Split by x or X
             sizeParts = cleanSize.split(/[xX]/);
+            
             // Convert to numbers and trim whitespace
             sizeParts = sizeParts.map(part => parseFloat(part.trim()));
             
@@ -178,17 +182,22 @@ function findStockSize(width, length) {
             
             const stockWidth = sizeParts[0];
             const stockLength = sizeParts[1];
+            console.log(`Checking if ${stockWidth} x ${stockLength} can work for ${width} x ${length}`);
             
-            console.log(`Checking if ${stockWidth} x ${stockLength} can accommodate ${width} x ${length}`);
-            
-            // Check if stock size can accommodate the requested dimensions
-            if (stockWidth >= width && stockLength >= length) {
-                console.log(`Found matching size: ${item.size}, price: ${item.totalPrice}`);
-                return {
-                    stockSize: item.size,
-                    // Handle different price property names in inventory structure
-                    price: item.totalPrice || item.price || 0
-                };
+            // Check if stock size meets our constraints:
+            // 1. Stock width must be at least the requested width
+            // 2. Stock width cannot be more than 1.5" wider than requested (cutting constraint)
+            // 3. Stock length must be at least the requested length (no length cutting limit)
+            if (stockWidth >= width && 
+                stockWidth <= width + 1.5 && 
+                stockLength >= length) {
+                console.log(`Valid match found: ${item.size}`);
+                validMatches.push({
+                    item: item,
+                    stockWidth: stockWidth,
+                    stockLength: stockLength,
+                    widthDifference: stockWidth - width
+                });
             }
         } catch (e) {
             console.log(`Error parsing size "${item.size}":`, e);
@@ -196,8 +205,23 @@ function findStockSize(width, length) {
         }
     }
     
-    console.log("No matching size found");
-    return null; // No matching size found
+    // If no valid matches found, return null
+    if (validMatches.length === 0) {
+        console.log("No matching size found within width cutting constraint");
+        return null;
+    }
+    
+    // Sort valid matches by width difference (closest to requested width first)
+    validMatches.sort((a, b) => a.widthDifference - b.widthDifference);
+    
+    // Return the best match (closest width)
+    const bestMatch = validMatches[0];
+    console.log(`Selected best match: ${bestMatch.item.size}, price: ${bestMatch.item.totalPrice}`);
+    
+    return {
+        stockSize: bestMatch.item.size,
+        price: bestMatch.item.totalPrice || bestMatch.item.price || 0
+    };
 }
 
 // Initialize the inventory table when the tab loads
