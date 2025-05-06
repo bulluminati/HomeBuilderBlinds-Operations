@@ -1,14 +1,21 @@
 // invoices.js - Invoice management functionality
 
-// Initialize invoices array and load from storage
+// Initialize invoices array and load from backend
 let invoices = [];
-const INVOICE_STORAGE_KEY = 'blinds_invoices';
 
 // Load invoices on page load
-function loadInvoices() {
-    const savedInvoices = StorageUtil.load(INVOICE_STORAGE_KEY);
-    if (savedInvoices) {
-        invoices = savedInvoices;
+async function loadInvoices() {
+    try {
+        const res = await fetch('/api/invoices');
+        const data = await res.json();
+        if (data.success) {
+            invoices = data.data;
+        } else {
+            invoices = [];
+        }
+    } catch (err) {
+        console.error('Failed to load invoices:', err);
+        invoices = [];
     }
 }
 
@@ -64,7 +71,6 @@ function handleItemTypeChange(event) {
         case 'Installation':
             descriptionInput.value = 'Blind Installation Service ($15/window)';
             priceInput.value = '15.00';
-            
             // Set recommendation note (min charge $75) if it exists
             const recommendedElement = row.querySelector('.recommended-size');
             if (recommendedElement) {
@@ -88,7 +94,6 @@ function handleItemTypeChange(event) {
                 priceInput.value = '';
             }
     }
-    
     updateInvoiceTotals();
 }
 
@@ -99,7 +104,6 @@ function removeInvoiceLineItem(button) {
     updateInvoiceTotals();
 }
 
-// Update invoice totals
 // Update invoice totals
 function updateInvoiceTotals() {
     const invoiceTable = document.getElementById('invoiceTable');
@@ -122,183 +126,62 @@ function updateInvoiceTotals() {
             const quantity = parseInt(cells[2].querySelector('input').value || '0');
             const unitPrice = parseFloat(cells[3].querySelector('input').value || '0');
             let total = quantity * unitPrice;
-            
-            // Track installation service for minimum charge
             if (itemType === 'Installation') {
                 hasInstallation = true;
                 installationTotal += total;
             }
-            
             cells[4].querySelector('.line-total').textContent = formatCurrency(total);
             subtotal += total;
         }
     }
-    
     // Apply minimum $75 installation charge if needed
     if (hasInstallation && installationTotal < 75) {
-        // Calculate the difference to add to subtotal
         const difference = 75 - installationTotal;
         subtotal += difference;
-        
-        // Update line totals for installation rows
         for (let i = 1; i < rows.length - 4; i++) {
             const cells = rows[i].getElementsByTagName('td');
             if (cells.length > 0) {
                 const itemType = cells[0].querySelector('select')?.value || '';
                 if (itemType === 'Installation') {
-                    // Find the first installation row and set it to the minimum
                     const lineTotal = cells[4].querySelector('.line-total');
                     const quantity = parseInt(cells[2].querySelector('input').value || '0');
                     const unitPrice = parseFloat(cells[3].querySelector('input').value || '0');
                     const rowTotal = quantity * unitPrice;
-                    
-                    // Add the difference to the first installation row
                     lineTotal.textContent = formatCurrency(rowTotal + difference);
-                    break; // Only update one row
+                    break;
                 }
             }
         }
     }
-    
     subtotalElement.textContent = formatCurrency(subtotal);
-    
-    // Calculate discount
     const discountPercent = parseFloat(discountPercentInput.value || '0');
     const discountAmount = (subtotal * (discountPercent / 100));
     discountAmountElement.textContent = formatCurrency(discountAmount);
-    
-    // Calculate tax (Euless, TX = 8.25%)
     const discountedSubtotal = subtotal - discountAmount;
     const taxAmount = discountedSubtotal * 0.0825; // 8.25% tax
     taxElement.textContent = formatCurrency(taxAmount);
-    
-    // Calculate grand total
     const grandTotal = discountedSubtotal + taxAmount;
     grandTotalElement.textContent = formatCurrency(grandTotal);
 }
 
 // Create new invoice
 function createNewInvoice() {
-    // Clear form
     document.getElementById('invoiceNumber').value = generateInvoiceNumber();
     document.getElementById('invoiceDate').valueAsDate = new Date();
-    document.getElementById('invoiceDueDate').valueAsDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // Due in 30 days
+    document.getElementById('invoiceDueDate').valueAsDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
     document.getElementById('invoiceClientName').value = '';
     document.getElementById('invoiceClientAddress').value = '';
     document.getElementById('invoiceClientPhone').value = '';
     document.getElementById('invoiceClientEmail').value = '';
     document.getElementById('invoiceDiscountPercent').value = '0';
-    
-    // Clear line items
     const tbody = document.getElementById('invoiceTable').querySelector('tbody');
     tbody.innerHTML = '';
-    
-    // Add one empty line item by default
     addInvoiceLineItem();
-    
-    // Update totals
-    updateInvoiceTotals();
-}
-
-// Convert work order to invoice
-function convertWorkOrderToInvoice(workOrderId) {
-    const savedPickSheets = StorageUtil.load(StorageKeys.PICK_SHEETS) || [];
-    const workOrder = savedPickSheets.find(order => order.id === workOrderId);
-    
-    if (!workOrder) {
-        alert('Work order not found');
-        return;
-    }
-    
-    // Fill in client info
-    document.getElementById('invoiceNumber').value = generateInvoiceNumber();
-    document.getElementById('invoiceDate').valueAsDate = new Date();
-    document.getElementById('invoiceDueDate').valueAsDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // Due in 30 days
-    document.getElementById('invoiceClientName').value = workOrder.clientName || '';
-    document.getElementById('invoiceClientAddress').value = workOrder.propertyName || '';
-    document.getElementById('invoiceClientPhone').value = workOrder.clientPhone || '';
-    document.getElementById('invoiceClientEmail').value = workOrder.clientEmail || '';
-    document.getElementById('invoiceDiscountPercent').value = '0';
-    
-    // Clear line items
-    const tbody = document.getElementById('invoiceTable').querySelector('tbody');
-    tbody.innerHTML = '';
-    
-    // Add work order items to invoice
-    workOrder.items.forEach(item => {
-        const row = createTableRow([
-            `<select class="premium-select">
-                <option value="${item.blindType}" selected>${item.blindType}</option>
-                <option value="Installation">Installation</option>
-                <option value="Service Fee">Service Fee</option>
-                <option value="Removal">Removal of Old Blinds</option>
-                <option value="Custom">Custom Item</option>
-            </select>`,
-            `<input type="text" class="premium-input item-description" value="${item.width}\" x ${item.length}\"" placeholder="Description">`,
-            `<input type="number" class="premium-input item-quantity" placeholder="Quantity" min="1" value="${item.quantity}">`,
-            `<input type="number" class="premium-input item-price" placeholder="Price" step="0.01" value="${item.unitPrice.toFixed(2)}">`,
-            `<span class="line-total">$${(item.quantity * item.unitPrice).toFixed(2)}</span>`,
-            `<button onclick="removeInvoiceLineItem(this)" class="premium-button">Remove</button>`
-        ]);
-        
-        tbody.appendChild(row);
-        
-        // Add event listeners to inputs
-        const inputs = row.querySelectorAll('input');
-        inputs.forEach(input => {
-            input.addEventListener('input', updateInvoiceTotals);
-        });
-        
-        // Add change event listener to the select
-        const select = row.querySelector('select');
-        if (select) {
-            select.addEventListener('change', handleItemTypeChange);
-        }
-    });
-    
-    // Add a separate line item for installation by default
-    const installRow = createTableRow([
-        `<select class="premium-select">
-            <option value="Installation" selected>Installation</option>
-            <option value="Faux Wood">Faux Wood</option>
-            <option value="Vertical">Vertical</option>
-            <option value="Service Fee">Service Fee</option>
-            <option value="Removal">Removal of Old Blinds</option>
-            <option value="Custom">Custom Item</option>
-        </select>`,
-        `<input type="text" class="premium-input item-description" value="Blind Installation Service" placeholder="Description">`,
-        `<input type="number" class="premium-input item-quantity" placeholder="Quantity" min="1" value="1">`,
-        `<input type="number" class="premium-input item-price" placeholder="Price" step="0.01" value="75.00">`,
-        `<span class="line-total">$75.00</span>`,
-        `<button onclick="removeInvoiceLineItem(this)" class="premium-button">Remove</button>`
-    ]);
-    
-    tbody.appendChild(installRow);
-    
-    // Add event listeners to inputs for installation row
-    const installInputs = installRow.querySelectorAll('input');
-    installInputs.forEach(input => {
-        input.addEventListener('input', updateInvoiceTotals);
-    });
-    
-    // Add event listener to installation select
-    const installSelect = installRow.querySelector('select');
-    if (installSelect) {
-        installSelect.addEventListener('change', handleItemTypeChange);
-    }
-    
-    // Switch to invoices tab and update totals
-    const invoicesButton = document.querySelector('.nav-button[data-tab="invoices"]');
-    if (invoicesButton) {
-        invoicesButton.click();
-    }
-    
     updateInvoiceTotals();
 }
 
 // Save invoice
 function saveInvoice() {
-    // Get invoice data
     const invoiceData = {
         id: document.getElementById('invoiceNumber').value || generateInvoiceNumber(),
         dateCreated: document.getElementById('invoiceDate').value,
@@ -312,13 +195,10 @@ function saveInvoice() {
         status: 'unpaid',
         dateUpdated: new Date().toISOString()
     };
-    
     if (!invoiceData.clientName) {
         alert('Please enter a client name before saving the invoice');
         return;
     }
-    
-    // Get line items
     const rows = Array.from(document.getElementById('invoiceTable').querySelectorAll('tbody tr'));
     rows.forEach(row => {
         const cells = row.cells;
@@ -327,7 +207,6 @@ function saveInvoice() {
             const description = cells[1].querySelector('input')?.value || '';
             const quantity = cells[2].querySelector('input')?.value || '0';
             const unitPrice = cells[3].querySelector('input')?.value || '0';
-            
             if (itemType && description) {
                 const item = { 
                     itemType,
@@ -339,55 +218,43 @@ function saveInvoice() {
             }
         }
     });
-    
     if (invoiceData.items.length === 0) {
         alert('Please add at least one item to the invoice');
         return;
     }
-    
-    // Calculate totals
     const subtotal = invoiceData.items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
     const discountAmount = subtotal * (parseFloat(invoiceData.discount) / 100);
     const discountedSubtotal = subtotal - discountAmount;
-    const taxAmount = discountedSubtotal * 0.0825; // 8.25% tax
-    
+    const taxAmount = discountedSubtotal * 0.0825;
     invoiceData.subtotal = subtotal;
     invoiceData.discountAmount = discountAmount;
     invoiceData.taxAmount = taxAmount;
     invoiceData.total = discountedSubtotal + taxAmount;
-    
-    // Check if this is a new invoice or updating an existing one
-    const existingIndex = invoices.findIndex(inv => inv.id === invoiceData.id);
-    
-    if (existingIndex >= 0) {
-        // Update existing invoice
-        invoices[existingIndex] = invoiceData;
-    } else {
-        // Add new invoice
-        invoices.push(invoiceData);
-    }
-    
-    // Save to storage
-    StorageUtil.save(INVOICE_STORAGE_KEY, invoices);
-    
-    // Update invoice list
-    updateInvoiceList();
-    
-    alert('Invoice saved successfully');
+    fetch('/api/invoices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(invoiceData)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('Invoice saved successfully');
+            loadInvoices().then(updateInvoiceList);
+        } else {
+            alert('Failed to save invoice: ' + (data.message || 'Unknown error'));
+        }
+    })
+    .catch(err => {
+        alert('Failed to save invoice: ' + err.message);
+    });
 }
 
 // Update the invoice list
 function updateInvoiceList() {
     const invoiceListContainer = document.getElementById('invoiceList');
     if (!invoiceListContainer) return;
-    
-    // Sort invoices by date (newest first)
     invoices.sort((a, b) => new Date(b.dateCreated) - new Date(a.dateCreated));
-    
-    // Clear list
     invoiceListContainer.innerHTML = '';
-    
-    // Create list of invoices
     invoices.forEach(invoice => {
         const invoiceCard = document.createElement('div');
         invoiceCard.className = 'premium-card';
@@ -408,7 +275,6 @@ function updateInvoiceList() {
                 <button onclick="deleteInvoice('${invoice.id}')" class="premium-button premium-danger">Delete</button>
             </div>
         `;
-        
         invoiceListContainer.appendChild(invoiceCard);
     });
 }
@@ -416,13 +282,10 @@ function updateInvoiceList() {
 // Edit an existing invoice
 function editInvoice(invoiceId) {
     const invoice = invoices.find(inv => inv.id === invoiceId);
-    
     if (!invoice) {
         alert('Invoice not found');
         return;
     }
-    
-    // Fill in invoice details
     document.getElementById('invoiceNumber').value = invoice.id;
     document.getElementById('invoiceDate').value = invoice.dateCreated;
     document.getElementById('invoiceDueDate').value = invoice.dateDue;
@@ -431,12 +294,8 @@ function editInvoice(invoiceId) {
     document.getElementById('invoiceClientPhone').value = invoice.clientPhone || '';
     document.getElementById('invoiceClientEmail').value = invoice.clientEmail || '';
     document.getElementById('invoiceDiscountPercent').value = invoice.discount || '0';
-    
-    // Clear invoice table
     const tbody = document.getElementById('invoiceTable').querySelector('tbody');
     tbody.innerHTML = '';
-    
-    // Add invoice items
     invoice.items.forEach(item => {
         const row = createTableRow([
             `<select class="premium-select">
@@ -453,45 +312,43 @@ function editInvoice(invoiceId) {
             `<span class="line-total">$${(item.quantity * item.unitPrice).toFixed(2)}</span>`,
             `<button onclick="removeInvoiceLineItem(this)" class="premium-button">Remove</button>`
         ]);
-        
         tbody.appendChild(row);
-        
-        // Add event listeners
         const inputs = row.querySelectorAll('input');
         inputs.forEach(input => {
             input.addEventListener('input', updateInvoiceTotals);
         });
-        
         const select = row.querySelector('select');
         if (select) {
             select.addEventListener('change', handleItemTypeChange);
         }
     });
-    
-    // Update totals
     updateInvoiceTotals();
-    
-    // Scroll to the invoice form
     document.querySelector('#invoices .premium-header').scrollIntoView({ behavior: 'smooth' });
 }
 
 // Mark invoice as paid
 function markInvoiceAsPaid(invoiceId) {
     const invoice = invoices.find(inv => inv.id === invoiceId);
-    
     if (!invoice) {
         alert('Invoice not found');
         return;
     }
-    
-    invoice.status = 'paid';
-    invoice.datePaid = new Date().toISOString();
-    
-    // Save to storage
-    StorageUtil.save(INVOICE_STORAGE_KEY, invoices);
-    
-    // Update the list
-    updateInvoiceList();
+    fetch(`/api/invoices/${invoiceId}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'paid', datePaid: new Date().toISOString() })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            loadInvoices().then(updateInvoiceList);
+        } else {
+            alert('Failed to mark as paid: ' + (data.message || 'Unknown error'));
+        }
+    })
+    .catch(err => {
+        alert('Failed to mark as paid: ' + err.message);
+    });
 }
 
 // Delete invoice
@@ -499,36 +356,50 @@ function deleteInvoice(invoiceId) {
     if (!confirm('Are you sure you want to delete this invoice?')) {
         return;
     }
-    
-    const index = invoices.findIndex(inv => inv.id === invoiceId);
-    
-    if (index === -1) {
-        alert('Invoice not found');
-        return;
-    }
-    
-    invoices.splice(index, 1);
-    
-    // Save to storage
-    StorageUtil.save(INVOICE_STORAGE_KEY, invoices);
-    
-    // Update the list
-    updateInvoiceList();
+    fetch('/api/invoices', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: invoiceId })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('Invoice deleted successfully');
+            loadInvoices().then(updateInvoiceList);
+        } else {
+            alert('Failed to delete invoice: ' + (data.message || 'Unknown error'));
+        }
+    })
+    .catch(err => {
+        alert('Failed to delete invoice: ' + err.message);
+    });
 }
 
 // Generate PDF invoice
 function printInvoice(invoiceId) {
     const invoice = invoices.find(inv => inv.id === invoiceId);
-    
     if (!invoice) {
         alert('Invoice not found');
         return;
     }
-    
+    // Defensive defaults for all fields
+    const id = invoice.id || '';
+    const dateCreated = invoice.dateCreated || '';
+    const dateDue = invoice.dateDue || '';
+    const clientName = invoice.clientName || invoice.client_name || 'N/A';
+    const clientAddress = invoice.clientAddress || invoice.client_address || 'N/A';
+    const clientPhone = invoice.clientPhone || invoice.client_phone || 'N/A';
+    const clientEmail = invoice.clientEmail || invoice.client_email || 'N/A';
+    const discount = invoice.discount !== undefined ? invoice.discount : 0;
+    const discountAmount = invoice.discountAmount !== undefined ? invoice.discountAmount : 0;
+    const subtotal = invoice.subtotal !== undefined ? invoice.subtotal : 0;
+    const taxAmount = invoice.taxAmount !== undefined ? invoice.taxAmount : 0;
+    const total = invoice.total !== undefined ? invoice.total : 0;
+    const status = invoice.status || 'unpaid';
+    const items = Array.isArray(invoice.items) ? invoice.items : [];
+
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
-    
-    // Header styling
     doc.setFillColor(30, 61, 89);
     doc.rect(0, 0, 210, 40, 'F');
     doc.setTextColor(188, 147, 85);
@@ -536,15 +407,12 @@ function printInvoice(invoiceId) {
     doc.text('Home Builder Blinds', 105, 20, { align: 'center' });
     doc.setFontSize(16);
     doc.text('INVOICE', 105, 32, { align: 'center' });
-    
-    // Invoice details
     doc.setTextColor(0);
     doc.setFontSize(10);
-    doc.text('INVOICE #: ' + invoice.id, 20, 55);
-    doc.text('DATE: ' + formatDate(invoice.dateCreated), 20, 62);
-    doc.text('DUE DATE: ' + formatDate(invoice.dateDue), 20, 69);
-    
-    if (invoice.status === 'paid') {
+    doc.text('INVOICE #: ' + id, 20, 55);
+    doc.text('DATE: ' + formatDate(dateCreated), 20, 62);
+    doc.text('DUE DATE: ' + formatDate(dateDue), 20, 69);
+    if (status === 'paid') {
         doc.setFillColor(39, 174, 96);
         doc.rect(150, 52, 40, 15, 'F');
         doc.setTextColor(255);
@@ -552,20 +420,14 @@ function printInvoice(invoiceId) {
         doc.text('PAID', 170, 62, { align: 'center' });
         doc.setTextColor(0);
     }
-    
-    // Client information
     doc.setFontSize(12);
     doc.text('Bill To:', 20, 85);
     doc.setFontSize(11);
-    doc.text(invoice.clientName, 30, 95);
-    doc.text(invoice.clientAddress, 30, 102);
-    doc.text('Phone: ' + (invoice.clientPhone || 'N/A'), 30, 109);
-    doc.text('Email: ' + (invoice.clientEmail || 'N/A'), 30, 116);
-    
-    // Invoice items table
+    doc.text(clientName, 30, 95);
+    doc.text(clientAddress, 30, 102);
+    doc.text('Phone: ' + clientPhone, 30, 109);
+    doc.text('Email: ' + clientEmail, 30, 116);
     let yPos = 130;
-    
-    // Table header
     doc.setFillColor(30, 61, 89);
     doc.rect(20, yPos - 5, 170, 10, 'F');
     doc.setTextColor(255);
@@ -573,51 +435,41 @@ function printInvoice(invoiceId) {
     const headers = ['Item', 'Description', 'Qty', 'Price', 'Total'];
     const positions = [20, 60, 130, 150, 180];
     headers.forEach((header, i) => doc.text(header, positions[i], yPos));
-    
-    // Table rows
     doc.setTextColor(0);
     yPos = 140;
-    
-    invoice.items.forEach(item => {
-        // Check if we need a new page
+    items.forEach(item => {
         if (yPos > 270) {
             doc.addPage();
             yPos = 20;
         }
-        
-        doc.text(item.itemType, 20, yPos);
-        doc.text(item.description, 60, yPos);
-        doc.text(item.quantity.toString(), 130, yPos);
-        doc.text('$' + parseFloat(item.unitPrice).toFixed(2), 150, yPos);
-        doc.text('$' + (item.quantity * item.unitPrice).toFixed(2), 180, yPos);
-        
+        const itemType = item.itemType || item.blindType || '';
+        const description = item.description || '';
+        const quantity = item.quantity !== undefined ? item.quantity : '';
+        const unitPrice = item.unitPrice !== undefined ? item.unitPrice : 0;
+        doc.text(itemType.toString(), 20, yPos);
+        doc.text(description.toString(), 60, yPos);
+        doc.text(quantity.toString(), 130, yPos);
+        doc.text('$' + parseFloat(unitPrice).toFixed(2), 150, yPos);
+        doc.text('$' + (quantity * unitPrice).toFixed(2), 180, yPos);
         yPos += 10;
     });
-    
-    // Add totals
     yPos += 5;
     doc.line(20, yPos, 190, yPos);
     yPos += 10;
-    
     doc.text('Subtotal:', 140, yPos);
-    doc.text('$' + invoice.subtotal.toFixed(2), 180, yPos);
+    doc.text('$' + subtotal.toFixed(2), 180, yPos);
     yPos += 10;
-    
-    if (parseFloat(invoice.discount) > 0) {
-        doc.text(`Discount (${invoice.discount}%):`, 140, yPos);
-        doc.text('-$' + invoice.discountAmount.toFixed(2), 180, yPos);
+    if (parseFloat(discount) > 0) {
+        doc.text(`Discount (${discount}%):`, 140, yPos);
+        doc.text('-$' + discountAmount.toFixed(2), 180, yPos);
         yPos += 10;
     }
-    
     doc.text('Tax (8.25%):', 140, yPos);
-    doc.text('$' + invoice.taxAmount.toFixed(2), 180, yPos);
+    doc.text('$' + taxAmount.toFixed(2), 180, yPos);
     yPos += 10;
-    
     doc.setFontSize(12);
     doc.text('Total:', 140, yPos);
-    doc.text('$' + invoice.total.toFixed(2), 180, yPos);
-    
-    // Payment instructions
+    doc.text('$' + total.toFixed(2), 180, yPos);
     yPos += 20;
     doc.setFontSize(10);
     doc.text('Payment Instructions:', 20, yPos);
@@ -625,95 +477,24 @@ function printInvoice(invoiceId) {
     doc.text('Please make checks payable to Home Builder Blinds', 25, yPos);
     yPos += 7;
     doc.text('For electronic payments, please contact our office', 25, yPos);
-    
-    // Footer
     yPos = 270;
     doc.text('Thank you for your business!', 105, yPos, { align: 'center' });
     doc.text('Contact: (817) 767-3874 | mike@homebuilderblinds.com', 105, yPos + 7, { align: 'center' });
-    
-    // Border
     doc.setDrawColor(188, 147, 85);
     doc.setLineWidth(2);
     doc.rect(5, 5, 200, 287);
-    
-    // Save the PDF
-    const fileName = `Invoice_${invoice.clientName.replace(/\s+/g, '_')}_${invoice.id}.pdf`;
+    const fileName = `Invoice_${clientName.replace(/\s+/g, '_')}_${id}.pdf`;
     doc.save(fileName);
 }
-
-// Initialize module
-document.addEventListener('DOMContentLoaded', () => {
-    // Load existing invoices
-    loadInvoices();
-    
-    // Set default values for new invoices
-    if (document.getElementById('invoiceDate')) {
-        document.getElementById('invoiceDate').valueAsDate = new Date();
-    }
-    
-    if (document.getElementById('invoiceDueDate')) {
-        // Set due date to 30 days from now by default
-        const dueDate = new Date();
-        dueDate.setDate(dueDate.getDate() + 30);
-        document.getElementById('invoiceDueDate').valueAsDate = dueDate;
-    }
-    
-    // Add event listener for discount input
-    const discountInput = document.getElementById('invoiceDiscountPercent');
-    if (discountInput) {
-        discountInput.addEventListener('input', updateInvoiceTotals);
-    }
-    
-    // Initialize invoice list if element exists
-    if (document.getElementById('invoiceList')) {
-        updateInvoiceList();
-    }
-    
-    // Load quotes into the quotes dropdown
-    updateQuotesDropdown();
-    
-    // Create new invoice button
-    const newInvoiceButton = document.getElementById('newInvoiceButton');
-    if (newInvoiceButton) {
-        newInvoiceButton.addEventListener('click', createNewInvoice);
-    }
-    
-    // Save invoice button
-    const saveInvoiceButton = document.getElementById('saveInvoiceButton');
-    if (saveInvoiceButton) {
-        saveInvoiceButton.addEventListener('click', saveInvoice);
-    }
-    
-    // Quote selection dropdown
-    const quotesDropdown = document.getElementById('quotesDropdown');
-    if (quotesDropdown) {
-        quotesDropdown.addEventListener('change', function() {
-            if (this.value) {
-                convertQuoteToInvoice(this.value);
-            }
-        });
-    }
-    
-    // If no invoice items, add one empty row
-    const invoiceTable = document.getElementById('invoiceTable');
-    if (invoiceTable && invoiceTable.querySelector('tbody').children.length === 0) {
-        addInvoiceLineItem();
-    }
-});
 
 // Function to update the quotes dropdown in the invoices tab
 function updateQuotesDropdown() {
     const quotesDropdown = document.getElementById('quotesDropdown');
     if (!quotesDropdown) return;
-    
     const savedQuotes = StorageUtil.load(StorageKeys.QUOTES) || [];
-    
-    // Clear existing options except the first one
     while (quotesDropdown.options.length > 1) {
         quotesDropdown.remove(1);
     }
-    
-    // Add quotes to dropdown
     savedQuotes.forEach(quote => {
         const option = document.createElement('option');
         option.value = quote.id;
@@ -724,30 +505,22 @@ function updateQuotesDropdown() {
 
 // Convert quote to invoice
 function convertQuoteToInvoice(quoteId) {
-    // Load saved quotes
     const savedQuotes = StorageUtil.load(StorageKeys.QUOTES) || [];
     const quote = savedQuotes.find(q => q.id === quoteId);
-    
     if (!quote) {
         alert('Quote not found');
         return;
     }
-    
-    // Fill in client info
     document.getElementById('invoiceNumber').value = generateInvoiceNumber();
     document.getElementById('invoiceDate').valueAsDate = new Date();
-    document.getElementById('invoiceDueDate').valueAsDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // Due in 30 days
+    document.getElementById('invoiceDueDate').valueAsDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
     document.getElementById('invoiceClientName').value = quote.clientName || '';
     document.getElementById('invoiceClientAddress').value = quote.propertyName || '';
     document.getElementById('invoiceClientPhone').value = quote.clientPhone || '';
     document.getElementById('invoiceClientEmail').value = quote.clientEmail || '';
     document.getElementById('invoiceDiscountPercent').value = quote.discount || '0';
-    
-    // Clear line items
     const tbody = document.getElementById('invoiceTable').querySelector('tbody');
     tbody.innerHTML = '';
-    
-    // Add quote items to invoice
     quote.items.forEach(item => {
         const row = createTableRow([
             `<select class="premium-select">
@@ -763,23 +536,16 @@ function convertQuoteToInvoice(quoteId) {
             `<span class="line-total">${(item.quantity * item.unitPrice).toFixed(2)}</span>`,
             `<button onclick="removeInvoiceLineItem(this)" class="premium-button">Remove</button>`
         ]);
-        
         tbody.appendChild(row);
-        
-        // Add event listeners to inputs
         const inputs = row.querySelectorAll('input');
         inputs.forEach(input => {
             input.addEventListener('input', updateInvoiceTotals);
         });
-        
-        // Add change event listener to the select
         const select = row.querySelector('select');
         if (select) {
             select.addEventListener('change', handleItemTypeChange);
         }
     });
-    
-    // If the service type is "install", add an installation line item
     if (quote.serviceType === 'install') {
         const installRow = createTableRow([
             `<select class="premium-select">
@@ -796,40 +562,159 @@ function convertQuoteToInvoice(quoteId) {
             `<span class="line-total">$75.00</span>`,
             `<button onclick="removeInvoiceLineItem(this)" class="premium-button">Remove</button>`
         ]);
-        
         tbody.appendChild(installRow);
-        
-        // Add event listeners to inputs for installation row
         const installInputs = installRow.querySelectorAll('input');
         installInputs.forEach(input => {
             input.addEventListener('input', updateInvoiceTotals);
         });
-        
-        // Add event listener to installation select
         const installSelect = installRow.querySelector('select');
         if (installSelect) {
             installSelect.addEventListener('change', handleItemTypeChange);
         }
     }
-    
-    // Reset the dropdown
     document.getElementById('quotesDropdown').selectedIndex = 0;
-    
-    // Update totals
     updateInvoiceTotals();
 }
 
-// Add global window functions
-window.addInvoiceLineItem = addInvoiceLineItem;
-window.removeInvoiceLineItem = removeInvoiceLineItem;
-window.updateInvoiceTotals = updateInvoiceTotals;
-window.handleItemTypeChange = handleItemTypeChange;
-window.saveInvoice = saveInvoice;
-window.createNewInvoice = createNewInvoice;
-window.editInvoice = editInvoice;
-window.markInvoiceAsPaid = markInvoiceAsPaid;
-window.deleteInvoice = deleteInvoice;
-window.printInvoice = printInvoice;
-window.convertWorkOrderToInvoice = convertWorkOrderToInvoice;
-window.convertQuoteToInvoice = convertQuoteToInvoice;
-window.updateQuotesDropdown = updateQuotesDropdown;
+// Utility: create table row from array of HTML strings
+function createTableRow(cells) {
+    const tr = document.createElement('tr');
+    cells.forEach(cellHTML => {
+        const td = document.createElement('td');
+        td.innerHTML = cellHTML;
+        tr.appendChild(td);
+    });
+    return tr;
+}
+
+// Utility: format currency
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+}
+
+// Utility: format date
+function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString();
+}
+
+// Initialize module
+
+// On DOMContentLoaded, load invoices and set up UI
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadInvoices().then(updateInvoiceList);
+    if (document.getElementById('invoiceDate')) {
+        document.getElementById('invoiceDate').valueAsDate = new Date();
+    }
+    if (document.getElementById('invoiceDueDate')) {
+        const dueDate = new Date();
+        dueDate.setDate(dueDate.getDate() + 30);
+        document.getElementById('invoiceDueDate').valueAsDate = dueDate;
+    }
+    const discountInput = document.getElementById('invoiceDiscountPercent');
+    if (discountInput) {
+        discountInput.addEventListener('input', updateInvoiceTotals);
+    }
+    if (document.getElementById('invoiceList')) {
+        updateInvoiceList();
+    }
+    updateQuotesDropdown();
+    const newInvoiceButton = document.getElementById('newInvoiceButton');
+    if (newInvoiceButton) {
+        newInvoiceButton.addEventListener('click', createNewInvoice);
+    }
+    const saveInvoiceButton = document.getElementById('saveInvoiceButton');
+    if (saveInvoiceButton) {
+        saveInvoiceButton.addEventListener('click', saveInvoice);
+    }
+    const quotesDropdown = document.getElementById('quotesDropdown');
+    if (quotesDropdown) {
+        quotesDropdown.addEventListener('change', function() {
+            if (this.value) {
+                convertQuoteToInvoice(this.value);
+            }
+        });
+    }
+    const invoiceTable = document.getElementById('invoiceTable');
+    if (invoiceTable && invoiceTable.querySelector('tbody').children.length === 0) {
+        addInvoiceLineItem();
+    }
+});
+
+// --- Import from Work Orders Feature ---
+async function importFromWorkOrders() {
+    try {
+        const res = await fetch('/api/finalized-orders');
+        const data = await res.json();
+        if (!data.success || !Array.isArray(data.data) || data.data.length === 0) {
+            alert('No finalized work orders found.');
+            return;
+        }
+        // Prompt user to select a work order
+        const selection = prompt('Select a work order by entering its number (\n' + data.data.map((order, i) => `${i + 1}: ${order.id} - ${order.client_name} (${order.property_name || ''})`).join('\n') + '\n):');
+        const idx = parseInt(selection) - 1;
+        if (isNaN(idx) || idx < 0 || idx >= data.data.length) {
+            alert('Invalid selection.');
+            return;
+        }
+        const order = data.data[idx];
+        // Fill invoice form with work order data
+        document.getElementById('invoiceNumber').value = generateInvoiceNumber();
+        document.getElementById('invoiceDate').valueAsDate = new Date();
+        document.getElementById('invoiceDueDate').valueAsDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+        document.getElementById('invoiceClientName').value = order.client_name || '';
+        document.getElementById('invoiceClientAddress').value = order.property_name || '';
+        document.getElementById('invoiceClientPhone').value = order.client_phone || '';
+        document.getElementById('invoiceClientEmail').value = order.client_email || '';
+        document.getElementById('invoiceDiscountPercent').value = '0';
+        const tbody = document.getElementById('invoiceTable').querySelector('tbody');
+        tbody.innerHTML = '';
+        (order.items || []).forEach(item => {
+            const row = createTableRow([
+                `<select class="premium-select">
+                    <option value="Faux Wood" ${item.blindType === 'Faux Wood' ? 'selected' : ''}>Faux Wood</option>
+                    <option value="Vertical" ${item.blindType === 'Vertical' ? 'selected' : ''}>Vertical</option>
+                    <option value="Installation" ${item.blindType === 'Installation' ? 'selected' : ''}>Installation</option>
+                    <option value="Service Fee" ${item.blindType === 'Service Fee' ? 'selected' : ''}>Service Fee</option>
+                    <option value="Removal" ${item.blindType === 'Removal' ? 'selected' : ''}>Removal of Old Blinds</option>
+                    <option value="Custom" ${item.blindType === 'Custom' ? 'selected' : ''}>Custom Item</option>
+                </select>`,
+                `<input type="text" class="premium-input item-description" value="${item.description || (item.width && item.length ? `${item.width}\" x ${item.length}\"` : '')}" placeholder="Description">`,
+                `<input type="number" class="premium-input item-quantity" placeholder="Quantity" min="1" value="${item.quantity}">`,
+                `<input type="number" class="premium-input item-price" placeholder="Price" step="0.01" value="${item.unitPrice ? parseFloat(item.unitPrice).toFixed(2) : '0.00'}">`,
+                `<span class="line-total">$${(item.quantity * (item.unitPrice || 0)).toFixed(2)}</span>`,
+                `<button onclick="removeInvoiceLineItem(this)" class="premium-button">Remove</button>`
+            ]);
+            tbody.appendChild(row);
+            const inputs = row.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('input', updateInvoiceTotals);
+            });
+            const select = row.querySelector('select');
+            if (select) {
+                select.addEventListener('change', handleItemTypeChange);
+            }
+        });
+        updateInvoiceTotals();
+    } catch (err) {
+        alert('Failed to import work orders: ' + err.message);
+    }
+}
+
+// Add the button to the DOM on page load
+(function addImportButton() {
+    document.addEventListener('DOMContentLoaded', function() {
+        const btnGroup = document.querySelector('#invoices .premium-button-group');
+        if (btnGroup && !document.getElementById('importWorkOrderButton')) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.id = 'importWorkOrderButton';
+            btn.className = 'premium-button';
+            btn.textContent = 'Import from Work Orders';
+            btn.onclick = importFromWorkOrders;
+            btnGroup.insertBefore(btn, btnGroup.firstChild);
+        }
+    });
+})();

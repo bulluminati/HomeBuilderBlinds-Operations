@@ -1114,17 +1114,6 @@ button:hover {
     display: block;
 }
 
-.premium-header {
-    color: var(--accent-gold);
-    font-size: 2.2em;
-    font-weight: 700;
-    font-family: 'Montserrat', sans-serif; /* Modern, elegant font */
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-bottom: 20px;
-    animation: pulse 1s infinite alternate;
-}
-
 .premium-metrics,
 .premium-analytics,
 .premium-inventory {
@@ -2061,4 +2050,38 @@ button:hover {
 .premium-checkbox:hover {
     transform: scale(1.1);
     box-shadow: 0 0 8px rgba(188, 147, 85, 0.4);
+}
+
+/* Responsive Table Cell Wrapping and Ellipsis */
+.premium-table th, .premium-table td, .premium-th, .premium-td {
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+  word-break: break-word;
+}
+
+@media screen and (max-width: 1024px) {
+  .premium-table th, .premium-table td, .premium-th, .premium-td {
+    max-width: 120px;
+    font-size: 0.95em;
+    padding: 8px 8px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .premium-table th, .premium-table td, .premium-th, .premium-td {
+    max-width: 80px;
+    font-size: 0.85em;
+    padding: 6px 4px;
+  }
+  .premium-table-responsive {
+    overflow-x: auto;
+  }
+}
+
+/* Add tooltip for truncated content */
+.premium-table td[title], .premium-td[title] {
+  cursor: help;
+  border-bottom: 1px dotted var(--accent-gold);
 }

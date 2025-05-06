@@ -202,7 +202,7 @@ async function openEditClientModal(clientId) {
     clients = await getClientProfiles();
   } catch (error) {
     console.error('Error loading client profiles:', error);
-    clients = StorageUtil.load(CLIENT_PROFILES_KEY) || [];
+    clients = [];
   }
   
   const client = clients.find(c => c.id === clientId);
@@ -263,6 +263,32 @@ async function saveClientFromModal() {
   loadClientList();
 }
 
+// Sync clients from database when online
+async function syncClientsToDatabase() {
+  try {
+    // Only load from API, no localStorage
+    const response = await fetch('/api/clients');
+    if (!response.ok) throw new Error('API unreachable');
+    const apiClients = await response.json();
+    console.log('Client data loaded from database');
+    return apiClients;
+  } catch (error) {
+    console.warn('Failed to load clients from database:', error);
+    return [];
+  }
+}
+
+// Get all client profiles
+async function getClientProfiles() {
+  try {
+    const response = await fetch('/api/clients');
+    return await response.json();
+  } catch (error) {
+    console.error('Error loading clients from API:', error);
+    return [];
+  }
+}
+
 // Save client profile using the API
 async function saveClientProfile(client) {
   try {
@@ -286,54 +312,23 @@ async function saveClientProfile(client) {
     }
   } catch (error) {
     console.error('Error saving client:', error);
-    // Fallback to localStorage if API fails
-    const clients = StorageUtil.load(CLIENT_PROFILES_KEY) || [];
-    const existingIndex = clients.findIndex(c => c.id === client.id);
-    if (existingIndex >= 0) {
-      clients[existingIndex] = client;
-    } else {
-      clients.push(client);
-    }
-    StorageUtil.save(CLIENT_PROFILES_KEY, clients);
     return client;
-  }
-}
-
-// Get all client profiles
-async function getClientProfiles() {
-  try {
-    const response = await fetch('/api/clients');
-    const clients = await response.json();
-    // Also save to localStorage as backup
-    StorageUtil.save(CLIENT_PROFILES_KEY, clients);
-    return clients;
-  } catch (error) {
-    console.error('Error loading clients from API:', error);
-    // Fallback to localStorage
-    return StorageUtil.load(CLIENT_PROFILES_KEY) || [];
   }
 }
 
 // Delete client profile
 async function deleteClientProfile(clientId) {
   if (!confirm('Are you sure you want to delete this client?')) return;
-  
   try {
     await fetch(`/api/clients/${clientId}`, {
       method: 'DELETE'
     });
-    
     // Update tables
     loadClientManagementTable();
     loadClientList();
   } catch (error) {
     console.error('Error deleting client:', error);
-    // Fallback to localStorage
-    let clients = StorageUtil.load(CLIENT_PROFILES_KEY) || [];
-    clients = clients.filter(client => client.id !== clientId);
-    StorageUtil.save(CLIENT_PROFILES_KEY, clients);
-    
-    // Update tables
+    // Update tables anyway
     loadClientManagementTable();
     loadClientList();
   }
@@ -343,25 +338,21 @@ async function deleteClientProfile(clientId) {
 async function loadClientManagementTable() {
   const table = document.getElementById('clientManagementTable');
   if (!table) return;
-  
   const tbody = table.querySelector('tbody');
   tbody.innerHTML = '';
-  
   let clients;
   try {
     clients = await getClientProfiles();
   } catch (error) {
     console.error('Error loading client profiles:', error);
-    clients = StorageUtil.load(CLIENT_PROFILES_KEY) || [];
+    clients = [];
   }
-  
   if (clients.length === 0) {
     const row = document.createElement('tr');
     row.innerHTML = '<td colspan="7" class="premium-td text-center">No clients found. Add a client to get started.</td>';
     tbody.appendChild(row);
     return;
   }
-  
   clients.forEach(client => {
     const row = document.createElement('tr');
     row.innerHTML = `
@@ -384,45 +375,43 @@ async function loadClientManagementTable() {
 async function loadClientList() {
   const clientList = document.getElementById('clientAccountList');
   if (!clientList) return;
-  
   clientList.innerHTML = '';
-  
   let clients;
   try {
     clients = await getClientProfiles();
   } catch (error) {
     console.error('Error loading client profiles:', error);
-    clients = StorageUtil.load(CLIENT_PROFILES_KEY) || [];
+    clients = [];
   }
-  
   if (clients.length === 0) {
     clientList.innerHTML = '<p>No clients found. Add a client to get started.</p>';
     return;
   }
-  
-  const list = document.createElement('div');
-  list.className = 'premium-account-list';
-  
+  // Use a card grid for layout
+  const grid = document.createElement('div');
+  grid.className = 'premium-card-grid';
   clients.forEach(client => {
-    const item = document.createElement('div');
-    item.className = 'premium-account-item';
-    item.innerHTML = `
-      <div class="premium-account-info">
-        <h4>${client.name}</h4>
-        <p>${client.email} | ${client.phone || 'No phone'}</p>
-        <p>${client.type === 'commercial' ? 'Commercial' : 'Residential'} | 
-           ${client.serviceType === 'delivery' ? 'Delivery Only' : 'Installation'} | 
-           ${client.measurementType === 'blind' ? 'Blind Measurements' : 'Window Measurements'}</p>
+    const card = document.createElement('div');
+    card.className = 'premium-card';
+    card.innerHTML = `
+      <div class="premium-card-header">
+        <h3>${client.name}</h3>
       </div>
-      <div class="premium-account-actions">
+      <div class="premium-card-body">
+        <p><strong>Email:</strong> ${client.email}</p>
+        <p><strong>Phone:</strong> ${client.phone || 'No phone'}</p>
+        <p><strong>Type:</strong> ${client.type === 'commercial' ? 'Commercial' : 'Residential'}</p>
+        <p><strong>Service:</strong> ${client.serviceType === 'delivery' ? 'Delivery Only' : 'Installation'}</p>
+        <p><strong>Measurement:</strong> ${client.measurementType === 'blind' ? 'Blind Measurements' : 'Window Measurements'}</p>
+      </div>
+      <div class="premium-card-footer">
         <button onclick="openEditClientModal('${client.id}')" class="premium-button premium-small">Edit</button>
-        <button onclick="deleteClientProfile('${client.id}')" class="premium-button premium-small premium-cancel">Delete</button>
+        <button onclick="deleteClientProfile('${client.id}')" class="premium-button premium-small premium-danger">Delete</button>
       </div>
     `;
-    list.appendChild(item);
+    grid.appendChild(card);
   });
-  
-  clientList.appendChild(list);
+  clientList.appendChild(grid);
 }
 
 // Fill work order form with client data
@@ -432,7 +421,7 @@ async function fillWorkOrderFormWithClient(clientId) {
     clients = await getClientProfiles();
   } catch (error) {
     console.error('Error loading client profiles:', error);
-    clients = StorageUtil.load(CLIENT_PROFILES_KEY) || [];
+    clients = [];
   }
   
   const client = clients.find(c => c.id === clientId);
@@ -491,7 +480,7 @@ async function addClientSelectToWorkOrderForm() {
     clients = await getClientProfiles();
   } catch (error) {
     console.error('Error loading client profiles:', error);
-    clients = StorageUtil.load(CLIENT_PROFILES_KEY) || [];
+    clients = [];
   }
   
   // Create client select
@@ -561,57 +550,10 @@ async function createClientAccount() {
   }
 }
 
-// Sync clients from local storage to database when online
-async function syncClientsToDatabase() {
-  try {
-    // First try to load from API
-    const response = await fetch('/api/clients');
-    if (!response.ok) throw new Error('API unreachable');
-    
-    const apiClients = await response.json();
-    const localClients = StorageUtil.load(CLIENT_PROFILES_KEY) || [];
-    
-    // If we have clients in localStorage that don't exist in API, push them
-    if (localClients.length > 0) {
-      for (const localClient of localClients) {
-        // Check if this client exists in API by matching email
-        const existsInApi = apiClients.some(c => 
-          c.email && localClient.email && 
-          c.email.toLowerCase() === localClient.email.toLowerCase()
-        );
-        
-        if (!existsInApi) {
-          console.log('Syncing local client to database:', localClient.name);
-          await fetch('/api/clients', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(localClient)
-          });
-        }
-      }
-    }
-    
-    // Update localStorage with API data
-    StorageUtil.save(CLIENT_PROFILES_KEY, apiClients);
-    console.log('Client data synchronized with database');
-    
-  } catch (error) {
-    console.warn('Failed to sync clients with database, using localStorage:', error);
-  }
-}
-
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-  // Try to sync clients with the database
   syncClientsToDatabase().then(() => {
-    // Initialize client management after sync
     initializeClientManagement();
-    
-    // Refresh client lists after sync
-    loadClientManagementTable();
-    loadClientList();
-    
-    // Add client select to work order form after sync
     setTimeout(() => {
       addClientSelectToWorkOrderForm();
     }, 500);
@@ -627,3 +569,5 @@ window.deleteClientProfile = deleteClientProfile;
 window.createClientAccount = createClientAccount;
 window.getClientProfileByEmail = getClientProfileByEmail;
 window.fillWorkOrderFormWithClient = fillWorkOrderFormWithClient;
+
+localStorage.removeItem('CLIENT_PROFILES_KEY');

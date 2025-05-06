@@ -1,18 +1,20 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
 const fs = require('fs');
+const multer = require('multer');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const port = process.env.PORT || 3000;
 
 // Import the blind orders router
 const blindOrdersRouter = require('./routes/blindOrders');
 
 // Database paths
 const measurementsDbPath = path.join(__dirname, 'data', 'shallowgrave.db');
-const blindOrdersDbPath = path.join(__dirname, '../HomeBuilderBlinds-Agent-Operations/data/homebuilder_ops.db');
+const blindOrdersDbPath = '/home/michael-gumfory/Desktop/HomeBuilderBlinds-Agent-Operations/data/homebuilder_ops.db';
 
 // Log the database paths to verify
 console.log("Measurements database path:", measurementsDbPath);
@@ -179,16 +181,11 @@ try {
 
 // Middleware
 app.use(cors());
-app.use(express.json({ limit: '10mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(bodyParser.json());
+app.use(express.static('public'));
 
 // Add the blind orders API route
 app.use('/api/blindorders', blindOrdersRouter);
-
-// Serve index.html
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
 
 // Finalized Orders Endpoints
 app.post('/api/finalized-orders', (req, res) => {
@@ -243,6 +240,7 @@ app.post('/api/finalized-orders', (req, res) => {
           db.close();
           
           if (err) {
+              console.error('Failed to save finalized order:', err);
               return res.status(500).json({
                   success: false,
                   message: 'Failed to save order',
@@ -269,7 +267,16 @@ app.post('/api/delivery-schedule', (req, res) => {
 
 // Get finalized orders
 app.get('/api/finalized-orders', (req, res) => {
-  // [implementation to retrieve finalized orders]
+  const db = new sqlite3.Database(blindOrdersDbPath, (err) => {
+    if (err) return res.status(500).json({ success: false, message: 'DB error', error: err.message });
+    db.all('SELECT * FROM finalized_orders ORDER BY date_created DESC', [], (err, rows) => {
+      db.close();
+      if (err) return res.status(500).json({ success: false, message: 'Failed to fetch orders', error: err.message });
+      // Parse order_data JSON
+      rows.forEach(row => { row.items = JSON.parse(row.order_data || '[]'); });
+      res.status(200).json({ success: true, data: rows });
+    });
+  });
 });
 
 // Get delivery schedule
@@ -1747,6 +1754,78 @@ app.get('/api/clients/email/:email', (req, res) => {
   });
 });
 
+// POST new invoice
+app.post('/api/invoices', (req, res) => {
+  const invoice = req.body;
+  const db = new sqlite3.Database(blindOrdersDbPath, (err) => {
+    if (err) return res.status(500).json({ success: false, message: 'DB error', error: err.message });
+    db.run(`
+      INSERT INTO invoices (
+        id, work_order_id, client_name, client_email, client_phone, client_address, items,
+        discount, subtotal, discount_amount, tax_amount, total, status, date_created, date_due, date_paid, date_sent, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    `, [
+      invoice.id,
+      invoice.workOrderId || '',
+      invoice.clientName,
+      invoice.clientEmail,
+      invoice.clientPhone,
+      invoice.clientAddress,
+      JSON.stringify(invoice.items),
+      invoice.discount,
+      invoice.subtotal,
+      invoice.discountAmount,
+      invoice.taxAmount,
+      invoice.total,
+      invoice.status || 'draft',
+      invoice.dateCreated,
+      invoice.dateDue,
+      invoice.datePaid || null,
+      invoice.dateSent || null
+    ], function(err) {
+      db.close();
+      if (err) return res.status(500).json({ success: false, message: 'Failed to save invoice', error: err.message });
+      res.status(201).json({ success: true, message: 'Invoice saved', id: invoice.id });
+    });
+  });
+});
+
+// GET all invoices
+app.get('/api/invoices', (req, res) => {
+  const db = new sqlite3.Database(blindOrdersDbPath, (err) => {
+    if (err) return res.status(500).json({ success: false, message: 'DB error', error: err.message });
+    db.all('SELECT * FROM invoices ORDER BY date_created DESC', [], (err, rows) => {
+      db.close();
+      if (err) return res.status(500).json({ success: false, message: 'Failed to fetch invoices', error: err.message });
+      // Parse items JSON
+      rows.forEach(row => { row.items = JSON.parse(row.items || '[]'); });
+      res.status(200).json({ success: true, data: rows });
+    });
+  });
+});
+
+// PUT update invoice status (sent/paid)
+app.put('/api/invoices/:id/status', (req, res) => {
+  const { status, datePaid, dateSent } = req.body;
+  const db = new sqlite3.Database(blindOrdersDbPath, (err) => {
+    if (err) return res.status(500).json({ success: false, message: 'DB error', error: err.message });
+    let updateFields = 'status = ?, updated_at = CURRENT_TIMESTAMP';
+    let params = [status, req.params.id];
+    if (status === 'paid') {
+      updateFields += ', date_paid = ?';
+      params = [status, datePaid || new Date().toISOString(), req.params.id];
+    } else if (status === 'sent') {
+      updateFields += ', date_sent = ?';
+      params = [status, dateSent || new Date().toISOString(), req.params.id];
+    }
+    db.run(`UPDATE invoices SET ${updateFields} WHERE id = ?`, params, function(err) {
+      db.close();
+      if (err) return res.status(500).json({ success: false, message: 'Failed to update invoice', error: err.message });
+      res.status(200).json({ success: true, message: 'Invoice updated' });
+    });
+  });
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -1757,9 +1836,51 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Catch-all route for SPA (must be last!)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 // Start server
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
   console.log(`Measurements database path: ${measurementsDbPath}`);
   console.log(`Blind orders database path: ${blindOrdersDbPath}`);
 });
+
+function initInvoicesTable() {
+  const db = new sqlite3.Database(blindOrdersDbPath, (err) => {
+    if (err) {
+      console.error('Error connecting to database for invoices table initialization:', err.message);
+      return;
+    }
+    db.run(`CREATE TABLE IF NOT EXISTS invoices (
+      id TEXT PRIMARY KEY,
+      work_order_id TEXT,
+      client_name TEXT,
+      client_email TEXT,
+      client_phone TEXT,
+      client_address TEXT,
+      items TEXT,
+      discount REAL,
+      subtotal REAL,
+      discount_amount REAL,
+      tax_amount REAL,
+      total REAL,
+      status TEXT DEFAULT 'draft',
+      date_created TEXT,
+      date_due TEXT,
+      date_paid TEXT,
+      date_sent TEXT,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating invoices table:', err.message);
+      } else {
+        console.log('Invoices table created or already exists');
+      }
+      db.close();
+    });
+  });
+}
+initInvoicesTable();
