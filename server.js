@@ -190,6 +190,596 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Finalized Orders Endpoints
+app.post('/api/finalized-orders', (req, res) => {
+  const order = req.body;
+  
+  // Validate required fields
+  if (!order.clientName) {
+      return res.status(400).json({
+          success: false,
+          message: 'Client name is required'
+      });
+  }
+  
+  // Connect to database
+  const db = new sqlite3.Database(blindOrdersDbPath, (err) => {
+      if (err) {
+          return res.status(500).json({
+              success: false,
+              message: 'Database connection error',
+              error: err.message
+          });
+      }
+      
+      // Serialize order items to JSON string
+      const orderData = JSON.stringify(order.items);
+      
+      // Calculate total amount if needed
+      const totalAmount = order.items.reduce((sum, item) => {
+          return sum + (parseFloat(item.unitPrice) * parseFloat(item.quantity));
+      }, 0);
+      
+      // Insert into finalized_orders table
+      db.run(`
+          INSERT INTO finalized_orders (
+              id, client_name, client_phone, client_email, property_name,
+              client_type, service_type, date_created, order_data,
+              status, total_amount, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      `, [
+          order.id,
+          order.clientName,
+          order.clientPhone,
+          order.clientEmail,
+          order.propertyName,
+          order.clientType,
+          order.serviceType,
+          order.dateCreated,
+          orderData,
+          order.status,
+          totalAmount
+      ], function(err) {
+          db.close();
+          
+          if (err) {
+              return res.status(500).json({
+                  success: false,
+                  message: 'Failed to save order',
+                  error: err.message
+              });
+          }
+          
+          res.status(201).json({
+              success: true,
+              message: 'Order saved successfully',
+              id: order.id
+          });
+      });
+  });
+});
+
+// Add endpoint to move order to delivery schedule
+app.post('/api/delivery-schedule', (req, res) => {
+  const { orderId, scheduledDate, scheduledTime, notes } = req.body;
+  
+  // Find the order in finalized_orders and move it to delivery_schedule
+  // [implementation details]
+});
+
+// Get finalized orders
+app.get('/api/finalized-orders', (req, res) => {
+  // [implementation to retrieve finalized orders]
+});
+
+// Get delivery schedule
+app.get('/api/delivery-schedule', (req, res) => {
+  // [implementation to retrieve delivery schedule]
+});
+
+// Add these inventory API endpoints to your server.js file
+
+// Initialize the inventory table if needed
+function initInventoryTable() {
+  const db = new sqlite3.Database(blindOrdersDbPath, (err) => {
+    if (err) {
+      console.error('Error connecting to database for inventory table initialization:', err.message);
+      return;
+    }
+    
+    console.log('Connected to SQLite database for inventory table initialization');
+    
+    // Check if the table exists
+    db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='inventory'", (err, row) => {
+      if (err) {
+        console.error('Error checking if inventory table exists:', err.message);
+        db.close();
+        return;
+      }
+      
+      if (!row) {
+        // Create the inventory table if it doesn't exist
+        db.run(`CREATE TABLE inventory (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          item_number TEXT,
+          size TEXT,
+          sqft REAL,
+          price_per_sqft REAL,
+          total_price REAL,
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+          updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )`, (err) => {
+          if (err) {
+            console.error('Error creating inventory table:', err.message);
+          } else {
+            console.log('Inventory table created successfully');
+          }
+          db.close();
+        });
+      } else {
+        console.log('Inventory table already exists');
+        db.close();
+      }
+    });
+  });
+}
+
+// Call this during server initialization
+initInventoryTable();
+
+// GET all inventory items
+app.get('/api/inventory', (req, res) => {
+  const db = new sqlite3.Database(blindOrdersDbPath, (err) => {
+    if (err) {
+      return res.status(500).json({
+        success: false,
+        message: 'Database connection error',
+        error: err.message
+      });
+    }
+    
+    db.all('SELECT * FROM inventory ORDER BY item_number', [], (err, rows) => {
+      db.close();
+      
+      if (err) {
+        return res.status(500).json({
+          success: false,
+          message: 'Error fetching inventory',
+          error: err.message
+        });
+      }
+      
+      // Map database field names to client-side field names for compatibility
+      const inventory = rows.map(row => ({
+        itemNumber: row.item_number || '',
+        size: row.size || '',
+        sqft: row.sqft || 0,
+        pricePerSqft: row.price_per_sqft || 0,
+        totalPrice: row.total_price || 0
+      }));
+      
+      res.status(200).json({
+        success: true,
+        data: inventory
+      });
+    });
+  });
+});
+
+// POST bulk inventory update (replaces all inventory)
+app.post('/api/inventory/bulk', (req, res) => {
+  const inventoryItems = req.body.items;
+  
+  if (!Array.isArray(inventoryItems)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Expected an array of inventory items'
+    });
+  }
+  
+  const db = new sqlite3.Database(blindOrdersDbPath, (err) => {
+    if (err) {
+      return res.status(500).json({
+        success: false, 
+        message: 'Database connection error',
+        error: err.message
+      });
+    }
+    
+    // Begin transaction for faster bulk insert
+    db.run('BEGIN TRANSACTION', (err) => {
+      if (err) {
+        db.close();
+        return res.status(500).json({
+          success: false,
+          message: 'Error starting transaction',
+          error: err.message
+        });
+      }
+      
+      // Delete all existing inventory
+      db.run('DELETE FROM inventory', (err) => {
+        if (err) {
+          // Roll back transaction if delete fails
+          db.run('ROLLBACK');
+          db.close();
+          return res.status(500).json({
+            success: false,
+            message: 'Error clearing existing inventory',
+            error: err.message
+          });
+        }
+        
+        // Prepare statement for bulk insert
+        const stmt = db.prepare(`
+          INSERT INTO inventory 
+          (item_number, size, sqft, price_per_sqft, total_price)
+          VALUES (?, ?, ?, ?, ?)
+        `);
+        
+        // Insert each inventory item
+        let hasError = false;
+        inventoryItems.forEach(item => {
+          try {
+            stmt.run(
+              item.itemNumber || '',
+              item.size || '',
+              item.sqft || 0,
+              item.pricePerSqft || 0,
+              item.totalPrice || 0
+            );
+          } catch (insertErr) {
+            console.error('Error inserting inventory item:', insertErr);
+            hasError = true;
+          }
+        });
+        
+        // Finalize the statement
+        stmt.finalize();
+        
+        if (hasError) {
+          // Roll back if there were any errors
+          db.run('ROLLBACK');
+          db.close();
+          return res.status(500).json({
+            success: false,
+            message: 'Error inserting inventory items'
+          });
+        }
+        
+        // Commit the transaction
+        db.run('COMMIT', (err) => {
+          db.close();
+          
+          if (err) {
+            return res.status(500).json({
+              success: false,
+              message: 'Error committing transaction',
+              error: err.message
+            });
+          }
+          
+          res.status(200).json({
+            success: true,
+            message: `Successfully updated inventory with ${inventoryItems.length} items`
+          });
+        });
+      });
+    });
+  });
+});
+
+// POST a single inventory item
+app.post('/api/inventory', (req, res) => {
+  const item = req.body;
+  
+  // Validate required fields
+  if (!item.size) {
+    return res.status(400).json({
+      success: false,
+      message: 'Size is required for inventory items'
+    });
+  }
+  
+  const db = new sqlite3.Database(blindOrdersDbPath, (err) => {
+    if (err) {
+      return res.status(500).json({
+        success: false,
+        message: 'Database connection error',
+        error: err.message
+      });
+    }
+    
+    db.run(`
+      INSERT INTO inventory 
+      (item_number, size, sqft, price_per_sqft, total_price)
+      VALUES (?, ?, ?, ?, ?)
+    `, [
+      item.itemNumber || '',
+      item.size || '',
+      item.sqft || 0,
+      item.pricePerSqft || 0,
+      item.totalPrice || 0
+    ], function(err) {
+      db.close();
+      
+      if (err) {
+        return res.status(500).json({
+          success: false,
+          message: 'Error adding inventory item',
+          error: err.message
+        });
+      }
+      
+      res.status(201).json({
+        success: true,
+        message: 'Inventory item added successfully',
+        id: this.lastID
+      });
+    });
+  });
+});
+
+// DELETE all inventory
+app.delete('/api/inventory', (req, res) => {
+  const db = new sqlite3.Database(blindOrdersDbPath, (err) => {
+    if (err) {
+      return res.status(500).json({
+        success: false,
+        message: 'Database connection error',
+        error: err.message
+      });
+    }
+    
+    db.run('DELETE FROM inventory', function(err) {
+      db.close();
+      
+      if (err) {
+        return res.status(500).json({
+          success: false,
+          message: 'Error clearing inventory',
+          error: err.message
+        });
+      }
+      
+      res.status(200).json({
+        success: true,
+        message: 'All inventory items deleted successfully',
+        count: this.changes
+      });
+    });
+  });
+});
+
+// Add these endpoints to your server.js file
+
+// POST new will call order
+app.post('/api/will-call-orders', (req, res) => {
+  const order = req.body;
+  
+  // Validate required fields
+  if (!order.client_name || !order.lead_time) {
+      return res.status(400).json({
+          success: false,
+          message: 'Client name and lead time are required'
+      });
+  }
+  
+  // Validate lead time (must be 2 or 5)
+  if (order.lead_time !== 2 && order.lead_time !== 5) {
+      return res.status(400).json({
+          success: false,
+          message: 'Lead time must be either 2 or 5 days'
+      });
+  }
+  
+  // Connect to database
+  const db = new sqlite3.Database(blindOrdersDbPath, (err) => {
+      if (err) {
+          return res.status(500).json({
+              success: false,
+              message: 'Database connection error',
+              error: err.message
+          });
+      }
+      
+      // Check if table exists, create it if not
+      db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='will_call_orders'", (err, row) => {
+          if (err) {
+              db.close();
+              return res.status(500).json({
+                  success: false,
+                  message: 'Error checking table existence',
+                  error: err.message
+              });
+          }
+          
+          if (!row) {
+              // Create table if it doesn't exist
+              db.run(`CREATE TABLE will_call_orders (
+                  id TEXT PRIMARY KEY,
+                  order_id TEXT,
+                  client_name TEXT,
+                  client_phone TEXT,
+                  client_email TEXT,
+                  property_name TEXT,
+                  client_type TEXT,
+                  lead_time INTEGER CHECK (lead_time IN (2, 5)),
+                  order_date TEXT,
+                  expected_date TEXT,
+                  order_data TEXT,
+                  status TEXT DEFAULT 'pending',
+                  notes TEXT,
+                  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+              )`, (err) => {
+                  if (err) {
+                      db.close();
+                      return res.status(500).json({
+                          success: false,
+                          message: 'Error creating will_call_orders table',
+                          error: err.message
+                      });
+                  }
+                  
+                  // Table created, now insert the order
+                  insertWillCallOrder();
+              });
+          } else {
+              // Table exists, proceed with insertion
+              insertWillCallOrder();
+          }
+      });
+      
+      // Function to insert the will call order
+      function insertWillCallOrder() {
+          db.run(`
+              INSERT INTO will_call_orders (
+                  id, order_id, client_name, client_phone, client_email, 
+                  property_name, client_type, lead_time, order_date, 
+                  expected_date, order_data, status, notes
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `, [
+              order.id,
+              order.order_id,
+              order.client_name,
+              order.client_phone || '',
+              order.client_email || '',
+              order.property_name || '',
+              order.client_type || 'residential',
+              order.lead_time,
+              order.order_date,
+              order.expected_date,
+              order.order_data,
+              order.status || 'pending',
+              order.notes || ''
+          ], function(err) {
+              db.close();
+              
+              if (err) {
+                  return res.status(500).json({
+                      success: false,
+                      message: 'Failed to save will call order',
+                      error: err.message
+                  });
+              }
+              
+              res.status(201).json({
+                  success: true,
+                  message: 'Will call order saved successfully',
+                  id: order.id
+              });
+          });
+      }
+  });
+});
+
+// GET will call orders
+app.get('/api/will-call-orders', (req, res) => {
+  // Connect to database
+  const db = new sqlite3.Database(blindOrdersDbPath, (err) => {
+      if (err) {
+          return res.status(500).json({
+              success: false,
+              message: 'Database connection error',
+              error: err.message
+          });
+      }
+      
+      // Query the will call orders
+      const status = req.query.status;
+      let query = `SELECT * FROM will_call_orders`;
+      
+      if (status) {
+          query += ` WHERE status = ?`;
+      }
+      
+      query += ` ORDER BY created_at DESC`;
+      
+      const params = status ? [status] : [];
+      
+      db.all(query, params, (err, rows) => {
+          db.close();
+          
+          if (err) {
+              return res.status(500).json({
+                  success: false,
+                  message: 'Error fetching will call orders',
+                  error: err.message
+              });
+          }
+          
+          // Parse order data for each order
+          const orders = rows.map(row => {
+              try {
+                  const parsedData = JSON.parse(row.order_data);
+                  return {
+                      ...row,
+                      items: parsedData
+                  };
+              } catch (e) {
+                  console.error(`Error parsing order data for ID ${row.id}:`, e);
+                  return {
+                      ...row,
+                      items: [],
+                      error: 'Error parsing order data'
+                  };
+              }
+          });
+          
+          res.status(200).json({
+              success: true,
+              data: orders
+          });
+      });
+  });
+});
+
+// Update will call order status
+app.put('/api/will-call-orders/:id', (req, res) => {
+  const orderId = req.params.id;
+  const { status, notes } = req.body;
+  
+  // Connect to database
+  const db = new sqlite3.Database(blindOrdersDbPath, (err) => {
+      if (err) {
+          return res.status(500).json({
+              success: false,
+              message: 'Database connection error',
+              error: err.message
+          });
+      }
+      
+      // Update the order status
+      db.run(
+          'UPDATE will_call_orders SET status = ?, notes = ? WHERE id = ?',
+          [status, notes || '', orderId],
+          function(err) {
+              db.close();
+              
+              if (err) {
+                  return res.status(500).json({
+                      success: false,
+                      message: 'Error updating will call order',
+                      error: err.message
+                  });
+              }
+              
+              if (this.changes === 0) {
+                  return res.status(404).json({
+                      success: false,
+                      message: 'Will call order not found'
+                  });
+              }
+              
+              res.status(200).json({
+                  success: true,
+                  message: 'Will call order updated successfully'
+              });
+          }
+      );
+  });
+});
+
 // API endpoint to save measurement data
 app.post('/api/measurements', (req, res) => {
   try {

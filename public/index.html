@@ -515,75 +515,113 @@
     </div>
   </div>
             <!-- Will Call Tab -->
-<div id="willCall" class="tab-content premium-tab">
-    <h2 class="premium-header">Will Call Orders</h2>
-    <div class="premium-controls">
-        <select id="willCallFilter" class="premium-select">
-            <option value="all">All Orders</option>
-            <option value="pending">Pending</option>
-            <option value="completed">Completed</option>
-        </select>
-        <input type="text" id="willCallSearch" placeholder="Search orders..." class="premium-input">
-        <button onclick="addWillCallOrder()" class="premium-button">Add Order</button>
-    </div>
-    <div class="premium-table-responsive">
-        <table id="willCallTable" class="premium-table">
-            <thead>
-                <tr>
-                    <th class="premium-th">Order #</th>
-                    <th class="premium-th">Client</th>
-                    <th class="premium-th">Items</th>
-                    <th class="premium-th">Status</th>
-                    <th class="premium-th">Actions</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
-    <div class="premium-button-group">
-        <button onclick="downloadWillCallList()" class="premium-button premium-secondary">Download Will Call List</button>
-        <button onclick="emailSupplier()" class="premium-button premium-secondary">Email to Supplier</button>
-    </div>
-</div>
+            <div id="willCall" class="tab-content premium-tab">
+                <h2 class="premium-header">Will Call Orders</h2>
+                
+                <div class="premium-description">
+                    <p>This tab displays orders sent to suppliers for will call pickup. View and manage order status here.</p>
+                </div>
+                
+                <div class="premium-controls">
+                    <select id="willCallFilter" class="premium-select">
+                        <option value="all">All Orders</option>
+                        <option value="pending">Pending</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                    <input type="text" id="willCallSearch" placeholder="Search orders..." class="premium-input">
+                </div>
+                
+                <div class="premium-table-responsive">
+                    <table id="willCallTable" class="premium-table">
+                        <thead>
+                            <tr>
+                                <th class="premium-th">Order #</th>
+                                <th class="premium-th">Client</th>
+                                <th class="premium-th">Lead Time</th>
+                                <th class="premium-th">Expected Date</th>
+                                <th class="premium-th">Items</th>
+                                <th class="premium-th">Status</th>
+                                <th class="premium-th">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                
+                <div class="premium-button-group">
+                    <button onclick="downloadWillCallList()" class="premium-button premium-secondary">Download Will Call List</button>
+                    <button onclick="emailSupplier()" class="premium-button premium-secondary">Email to Supplier</button>
+                </div>
+            </div>
 
             <!-- Install/Delivery Tab -->
-            <div id="installDelivery" class="tab-content tesla-theme">
-                <h2 class="tesla-header">Install & Delivery Management</h2>
-                <div class="business-section tesla-section">
-                    <h3>Today's Schedule</h3>
-                    <div class="button-group tesla-button-group">
-                        <button onclick="filterSchedule('all')">All</button>
-                        <button onclick="filterSchedule('install')">Installs</button>
-                        <button onclick="filterSchedule('delivery')">Deliveries</button>
-                    </div>
-                    <div class="button-group tesla-button-group">
-                        <button onclick="filterByClientType('all')">All Clients</button>
-                        <button onclick="filterByClientType('residential')">Residential</button>
-                        <button onclick="filterByClientType('commercial')">Commercial</button>
-                    </div>
-                    <div class="table-responsive">
-                        <table id="scheduleTable">
+            <div id="installDelivery" class="tab-content premium-tab">
+                <h2 class="premium-header">Install & Delivery Management</h2>
+                
+                <!-- Pending Work Orders Section -->
+                <div class="premium-section">
+                    <h3 class="premium-subheader">Pending Work Orders</h3>
+                    <p>These orders need to be scheduled for delivery or installation.</p>
+                    <div class="premium-table-responsive">
+                        <table id="pendingOrdersTable" class="premium-table">
                             <thead>
                                 <tr>
-                                    <th>Time</th><th>Type</th><th>Client</th><th>Address</th>
-                                    <th>Items</th><th>Status</th><th>Actions</th>
+                                    <th class="premium-th">Order #</th>
+                                    <th class="premium-th">Client</th>
+                                    <th class="premium-th">Property</th>
+                                    <th class="premium-th">Items</th>
+                                    <th class="premium-th">Service Type</th>
+                                    <th class="premium-th">Actions</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
                         </table>
                     </div>
                 </div>
-                <div class="business-section tesla-section">
-                    <h3>Route Planning</h3>
-                    <div class="form-grid">
-                        <div class="input-group">
+                
+                <!-- Schedule Section -->
+                <div class="premium-section">
+                    <h3 class="premium-subheader">Delivery & Installation Schedule</h3>
+                    <div class="premium-button-group">
+                        <button onclick="filterSchedule('all')" class="premium-button">All</button>
+                        <button onclick="filterSchedule('install')" class="premium-button">Installs</button>
+                        <button onclick="filterSchedule('delivery')" class="premium-button">Deliveries</button>
+                    </div>
+                    <div class="premium-button-group">
+                        <button onclick="filterByClientType('all')" class="premium-button">All Clients</button>
+                        <button onclick="filterByClientType('residential')" class="premium-button">Residential</button>
+                        <button onclick="filterByClientType('commercial')" class="premium-button">Commercial</button>
+                    </div>
+                    <div class="premium-table-responsive">
+                        <table id="scheduleTable" class="premium-table">
+                            <thead>
+                                <tr>
+                                    <th class="premium-th">Time</th>
+                                    <th class="premium-th">Type</th>
+                                    <th class="premium-th">Client</th>
+                                    <th class="premium-th">Address</th>
+                                    <th class="premium-th">Items</th>
+                                    <th class="premium-th">Status</th>
+                                    <th class="premium-th">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Route Planning Section -->
+                <div class="premium-section">
+                    <h3 class="premium-subheader">Route Planning</h3>
+                    <div class="premium-form-grid">
+                        <div class="premium-input-group">
                             <label>Date:</label>
-                            <input type="date" id="routeDate">
+                            <input type="date" id="routeDate" class="premium-input">
                         </div>
-                        <div class="input-group">
+                        <div class="premium-input-group">
                             <label>Driver/Installer:</label>
-                            <select id="staffSelect">
-                                <option value="">Select Staff...</option>
+                            <select id="staffSelect" class="premium-select">
+                                <option value="">All Staff</option>
                                 <option value="driver1">Driver 1</option>
                                 <option value="driver2">Driver 2</option>
                                 <option value="installer1">Installer 1</option>
@@ -591,54 +629,31 @@
                             </select>
                         </div>
                     </div>
-                    <div class="route-map">Map Integration</div>
-                </div>
-                <div class="business-section tesla-section">
-                    <h3>Installation Requirements</h3>
-                    <div class="table-responsive">
-                        <table id="installationTable">
-                            <thead>
-                                <tr>
-                                    <th>Order #</th><th>Window Count</th><th>Special Requirements</th>
-                                    <th>Est. Duration</th><th>Tools Needed</th><th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
+                    <div class="premium-details-container">
+                        <h4 class="premium-subheader">Today's Routes</h4>
+                        <div id="routesList" class="premium-route-list"></div>
                     </div>
                 </div>
-                <div class="business-section tesla-section">
-                    <h3>Delivery Notes</h3>
-                    <div class="form-grid">
-                        <div class="input-group">
+                
+                <!-- Photo Documentation Section -->
+                <div class="premium-section">
+                    <h3 class="premium-subheader">Photo Documentation</h3>
+                    <div class="premium-form-grid">
+                        <div class="premium-input-group">
                             <label>Order Number:</label>
-                            <input type="text" id="deliveryOrderNum">
+                            <input type="text" id="photoOrderNum" class="premium-input">
                         </div>
-                        <div class="input-group">
-                            <label>Delivery Instructions:</label>
-                            <textarea id="deliveryNotes"></textarea>
-                        </div>
-                    </div>
-                    <button onclick="saveDeliveryNotes()">Save Notes</button>
-                </div>
-                <div class="business-section tesla-section">
-                    <h3>Photo Documentation</h3>
-                    <div class="form-grid">
-                        <div class="input-group">
-                            <label>Order Number:</label>
-                            <input type="text" id="photoOrderNum">
-                        </div>
-                        <div class="input-group">
+                        <div class="premium-input-group">
                             <label>Upload Photos:</label>
-                            <input type="file" id="photoUpload" multiple accept="image/*">
+                            <input type="file" id="photoUpload" multiple accept="image/*" class="premium-input-file">
                         </div>
+                    </div>
+                    <div class="premium-button-group">
+                        <button onclick="uploadPhotos()" class="premium-button">Upload Photos</button>
                     </div>
                     <div class="photo-grid"></div>
-                    <button onclick="uploadPhotos()" class="mt-20">Upload Photos</button>
                 </div>
             </div>
-        </main>
-    </div>
 
     <!-- Pick Sheet Modal -->
 <div id="pickSheetModal" class="premium-modal">
@@ -662,6 +677,7 @@
 </div>
 
     <script src="core.js"></script>
+    <script src="inventory-migration.js"></script>
     <script src="clientManagement.js"></script>
     <script src="supplierManagement.js"></script>
     <script src="dashboard.js"></script>

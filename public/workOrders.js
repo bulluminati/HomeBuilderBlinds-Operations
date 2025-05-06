@@ -507,9 +507,18 @@ function createEstimate() {
     const fileName = `Quote_${clientName.replace(/\s+/g, '_')}_${quoteNumber}.pdf`;
     doc.save(fileName);
 }
+// Add this function to your workOrders.js file
 
-// Accept quote function
-function acceptQuote() {
+// Function to send order to Will Call
+function sendToWillCall() {
+    // First validate that we have a valid work order
+    const clientName = document.getElementById('clientName').value;
+    if (!clientName) {
+        alert('Please enter a client name before sending to Will Call');
+        return;
+    }
+    
+    // Collect work order data
     const workOrderData = {
         id: 'WO-' + Date.now().toString().slice(-6),
         dateCreated: new Date().toISOString(),
@@ -523,6 +532,7 @@ function acceptQuote() {
         status: 'pending'
     };
     
+    // Collect all line items from the table
     const rows = Array.from(document.getElementById('workOrderTable').querySelectorAll('tbody tr'));
     rows.forEach(row => {
         const cells = row.cells;
@@ -534,12 +544,12 @@ function acceptQuote() {
             const recommendedSize = cells[5].querySelector('.recommended-size')?.textContent || '-';
             
             if (blindType && width && length && quantity) {
-                const item = { 
-                    blindType, 
-                    width, 
-                    length, 
-                    quantity, 
-                    recommendedSize, 
+                const item = {
+                    blindType,
+                    width,
+                    length,
+                    quantity,
+                    recommendedSize,
                     status: 'pending',
                     unitPrice: parseFloat(cells[6].querySelector('.unit-price').textContent.replace('$', '')) || 0
                 };
@@ -548,8 +558,10 @@ function acceptQuote() {
         }
     });
     
-    // Add installation service if needed
-    if (workOrderData.serviceType === 'install' && document.getElementById('includeInstallation') && document.getElementById('includeInstallation').checked) {
+    // Add installation/removal services if needed (same as in acceptQuote)
+    if (workOrderData.serviceType === 'install' && 
+        document.getElementById('includeInstallation') && 
+        document.getElementById('includeInstallation').checked) {
         workOrderData.items.push({
             blindType: 'Installation',
             description: 'Blind Installation Service',
@@ -558,8 +570,8 @@ function acceptQuote() {
         });
     }
     
-    // Add removal service if needed
-    if (document.getElementById('includeRemoval') && document.getElementById('includeRemoval').checked) {
+    if (document.getElementById('includeRemoval') && 
+        document.getElementById('includeRemoval').checked) {
         workOrderData.items.push({
             blindType: 'Removal',
             description: 'Removal of Old Blinds',
@@ -568,23 +580,358 @@ function acceptQuote() {
         });
     }
     
+    // Validate that we have at least one item
     if (workOrderData.items.length === 0) {
         alert('Please add at least one item to the work order');
         return;
     }
     
-    const savedPickSheets = StorageUtil.load(StorageKeys.PICK_SHEETS) || [];
-    savedPickSheets.push(workOrderData);
-    StorageUtil.save(StorageKeys.PICK_SHEETS, savedPickSheets);
+    // Show the Will Call dialog for lead time selection
+    showWillCallDialog(workOrderData);
+}
+
+// Function to show the Will Call dialog
+function showWillCallDialog(workOrderData) {
+    // Create modal container
+    const modalContainer = document.createElement('div');
+    modalContainer.className = 'premium-modal';
+    modalContainer.style.display = 'flex';
     
-    if (document.getElementById('pickSheet').classList.contains('active')) {
-        updatePickSheet(); // Defined in pickSheet.js
+    // Create modal content
+    const modalContent = document.createElement('div');
+    modalContent.className = 'premium-modal-content';
+    
+    // Create the dialog content
+    modalContent.innerHTML = `
+        <span class="premium-close-modal" onclick="closeWillCallDialog()">&times;</span>
+        <h2 class="premium-subheader">Send to Will Call</h2>
+        <p>Please select a lead time for this order:</p>
+        
+        <div class="premium-form-grid">
+            <div class="premium-input-group">
+                <label>Lead Time:</label>
+                <select id="willCallLeadTime" class="premium-select">
+                    <option value="2">2 Days</option>
+                    <option value="5" selected>5 Days</option>
+                </select>
+            </div>
+            
+            <div class="premium-input-group">
+                <label>Notes:</label>
+                <textarea id="willCallNotes" class="premium-textarea" rows="3" placeholder="Optional order notes"></textarea>
+            </div>
+        </div>
+        
+        <div class="premium-details-container">
+            <h3>Order Summary</h3>
+            <p><strong>Client:</strong> ${workOrderData.clientName}</p>
+            <p><strong>Items:</strong> ${workOrderData.items.length}</p>
+        </div>
+        
+        <div class="premium-button-group">
+            <button onclick="confirmWillCallOrder()" class="premium-button premium-primary">Confirm & Send to Will Call</button>
+            <button onclick="closeWillCallDialog()" class="premium-button">Cancel</button>
+        </div>
+    `;
+    
+    // Append modal to body
+    modalContainer.appendChild(modalContent);
+    document.body.appendChild(modalContainer);
+    
+    // Store workOrderData in window object for access by confirm function
+    window.tempWorkOrderData = workOrderData;
+}
+
+// Function to close the Will Call dialog
+function closeWillCallDialog() {
+    const modal = document.querySelector('.premium-modal');
+    if (modal) {
+        document.body.removeChild(modal);
+    }
+    // Clear the temporary data
+    window.tempWorkOrderData = null;
+}
+
+// Function to confirm and process Will Call order
+function confirmWillCallOrder() {
+    // Get the stored work order data
+    const workOrderData = window.tempWorkOrderData;
+    if (!workOrderData) {
+        alert('Error: Work order data not found');
+        closeWillCallDialog();
+        return;
     }
     
+    // Get lead time and notes
+    const leadTime = parseInt(document.getElementById('willCallLeadTime').value);
+    const notes = document.getElementById('willCallNotes').value;
+    
+    // Calculate expected date based on lead time
+    const expectedDate = new Date();
+    expectedDate.setDate(expectedDate.getDate() + leadTime);
+    
+    // Create Will Call order
+    const willCallOrder = {
+        id: 'WC-' + Date.now().toString().slice(-6),
+        order_id: workOrderData.id,
+        client_name: workOrderData.clientName,
+        client_phone: workOrderData.clientPhone,
+        client_email: workOrderData.clientEmail,
+        property_name: workOrderData.propertyName,
+        client_type: workOrderData.clientType,
+        lead_time: leadTime,
+        order_date: new Date().toISOString(),
+        expected_date: expectedDate.toISOString(),
+        order_data: JSON.stringify(workOrderData.items),
+        status: 'pending',
+        notes: notes
+    };
+    
+    // Save to both finalized orders and will call tables
+    saveToDatabase(workOrderData, willCallOrder);
+}
+
+// Function to save to database or local storage
+function saveToDatabase(workOrderData, willCallOrder) {
+    // Try to use the API if available
+    if (typeof fetch !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '') {
+        // Save finalized order
+        fetch('/api/finalized-orders', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(workOrderData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Now save will call order
+                return fetch('/api/will-call-orders', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(willCallOrder)
+                });
+            } else {
+                throw new Error('Failed to save finalized order: ' + data.message);
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                handleSaveSuccess();
+            } else {
+                throw new Error('Failed to save will call order: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Fall back to local storage
+            saveToLocalStorage(workOrderData, willCallOrder);
+            handleSaveSuccess();
+        });
+    } else {
+        // Use local storage
+        saveToLocalStorage(workOrderData, willCallOrder);
+        handleSaveSuccess();
+    }
+}
+
+// Function to save to localStorage
+function saveToLocalStorage(workOrderData, willCallOrder) {
+    // Save to finalized orders
+    const finalizedOrders = StorageUtil.load(StorageKeys.FINALIZED_ORDERS) || [];
+    finalizedOrders.push(workOrderData);
+    StorageUtil.save(StorageKeys.FINALIZED_ORDERS, finalizedOrders);
+    
+    // Save to will call orders
+    const willCallOrders = StorageUtil.load(StorageKeys.WILL_CALL_ORDERS) || [];
+    willCallOrders.push(willCallOrder);
+    StorageUtil.save(StorageKeys.WILL_CALL_ORDERS, willCallOrders);
+}
+
+// Function to handle successful save
+function handleSaveSuccess() {
+    // Close the dialog
+    closeWillCallDialog();
+    
+    // Reset the form
     document.getElementById('workOrderForm').reset();
     document.getElementById('workOrderTable').querySelector('tbody').innerHTML = '';
-    alert('Work order sent to warehouse successfully!');
+    
+    // Show success message
+    alert('Order successfully sent to Will Call!');
+    
+    // Update will call tab if it's active
+    if (document.getElementById('willCall')?.classList.contains('active')) {
+        if (typeof updateWillCallTable === 'function') {
+            updateWillCallTable();
+        }
+    }
 }
+
+// Initialize at DOM load
+document.addEventListener('DOMContentLoaded', () => {
+    // Add Will Call button to work orders tab
+    const workOrdersTab = document.getElementById('workOrders');
+    if (workOrdersTab) {
+        const buttonGroup = workOrdersTab.querySelector('.premium-button-group');
+        if (buttonGroup) {
+            const willCallButton = document.createElement('button');
+            willCallButton.type = 'button';
+            willCallButton.className = 'premium-button';
+            willCallButton.style.backgroundColor = '#f0ad4e';
+            willCallButton.style.color = 'white';
+            willCallButton.innerHTML = '🏭 Send to Will Call';
+            willCallButton.onclick = sendToWillCall;
+            
+            // Add the button to the button group
+            buttonGroup.appendChild(willCallButton);
+        }
+    }
+    
+    // Make functions globally accessible
+    window.sendToWillCall = sendToWillCall;
+    window.showWillCallDialog = showWillCallDialog;
+    window.closeWillCallDialog = closeWillCallDialog;
+    window.confirmWillCallOrder = confirmWillCallOrder;
+});
+
+// Accept quote function
+function acceptQuote() {
+    // Create the work order data object with basic information
+    const workOrderData = {
+      id: 'WO-' + Date.now().toString().slice(-6),
+      dateCreated: new Date().toISOString(),
+      clientName: document.getElementById('clientName').value,
+      propertyName: document.getElementById('propertyName').value,
+      clientPhone: document.getElementById('clientPhone').value,
+      clientEmail: document.getElementById('clientEmail').value,
+      clientType: document.getElementById('clientType')?.value || 'residential',
+      serviceType: document.getElementById('serviceType')?.value || 'install',
+      items: [],
+      status: 'pending'
+    };
+    
+    // Collect all line items from the table
+    const rows = Array.from(document.getElementById('workOrderTable').querySelectorAll('tbody tr'));
+    rows.forEach(row => {
+      const cells = row.cells;
+      if (cells.length > 0) {
+        const blindType = cells[0].querySelector('select')?.value || '';
+        const width = cells[1].querySelector('input')?.value || '';
+        const length = cells[2].querySelector('input')?.value || '';
+        const quantity = cells[3].querySelector('input')?.value || '0';
+        const recommendedSize = cells[5].querySelector('.recommended-size')?.textContent || '-';
+        
+        if (blindType && width && length && quantity) {
+          const item = {
+            blindType,
+            width,
+            length,
+            quantity,
+            recommendedSize,
+            status: 'pending',
+            unitPrice: parseFloat(cells[6].querySelector('.unit-price').textContent.replace('$', '')) || 0
+          };
+          workOrderData.items.push(item);
+        }
+      }
+    });
+    
+    // Add installation service if needed
+    if (workOrderData.serviceType === 'install' && 
+        document.getElementById('includeInstallation') && 
+        document.getElementById('includeInstallation').checked) {
+      workOrderData.items.push({
+        blindType: 'Installation',
+        description: 'Blind Installation Service',
+        quantity: '1',
+        unitPrice: 75.00
+      });
+    }
+    
+    // Add removal service if needed
+    if (document.getElementById('includeRemoval') && 
+        document.getElementById('includeRemoval').checked) {
+      workOrderData.items.push({
+        blindType: 'Removal',
+        description: 'Removal of Old Blinds',
+        unitPrice: 35.00,
+        quantity: '1'
+      });
+    }
+    
+    // Validate that there's at least one item
+    if (workOrderData.items.length === 0) {
+      alert('Please add at least one item to the work order');
+      return;
+    }
+    
+    // Save to finalized_orders table via API if available
+    if (typeof fetch !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '') {
+      // If we have a server API available, use it
+      fetch('/api/finalized-orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(workOrderData)
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          resetFormAndNotifySuccess();
+        } else {
+          // Fall back to local storage if API fails
+          saveToLocalStorage(workOrderData);
+          resetFormAndNotifySuccess();
+          console.warn('API save failed, used local storage fallback:', data.message);
+        }
+      })
+      .catch(error => {
+        // Fall back to local storage if API is unavailable
+        console.error('Error saving work order to API:', error);
+        saveToLocalStorage(workOrderData);
+        resetFormAndNotifySuccess();
+      });
+    } else {
+      // If no API is available, use local storage
+      saveToLocalStorage(workOrderData);
+      resetFormAndNotifySuccess();
+    }
+    
+    // Helper function to save to localStorage
+    function saveToLocalStorage(data) {
+      const savedPickSheets = StorageUtil.load(StorageKeys.PICK_SHEETS) || [];
+      savedPickSheets.push(data);
+      StorageUtil.save(StorageKeys.PICK_SHEETS, savedPickSheets);
+      
+      // Also save to finalized orders if that storage exists
+      const finalizedOrders = StorageUtil.load(StorageKeys.FINALIZED_ORDERS) || [];
+      finalizedOrders.push(data);
+      StorageUtil.save(StorageKeys.FINALIZED_ORDERS, finalizedOrders);
+    }
+    
+    // Helper function to reset form and show success message
+    function resetFormAndNotifySuccess() {
+      // Reset the form
+      document.getElementById('workOrderForm').reset();
+      document.getElementById('workOrderTable').querySelector('tbody').innerHTML = '';
+      
+      // Update pick sheet if needed
+      if (document.getElementById('pickSheet')?.classList.contains('active')) {
+        if (typeof updatePickSheet === 'function') {
+          updatePickSheet();
+        }
+      }
+      
+      // Show success message
+      alert('Work order sent to warehouse successfully!');
+    }
+  }
 
 // Save quote function
 function saveQuote() {
